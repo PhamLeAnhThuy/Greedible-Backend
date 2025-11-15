@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '../supabase/server';
 
 // JWT Payload types
 interface StaffJwtPayload extends JwtPayload {
@@ -14,14 +14,6 @@ interface CustomerJwtPayload extends JwtPayload {
   id: number;
   email: string;
   type: 'customer';
-}
-
-// Create Supabase client (server-side)
-function getSupabaseClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY! // Use service role key for server-side operations
-  );
 }
 
 /**
@@ -43,7 +35,7 @@ export async function authenticateToken(request: Request) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as StaffJwtPayload;
-    const supabase = getSupabaseClient();
+    const supabase = await createServerClient(); 
 
     // Fetch staff user details from Supabase
     const { data: staff, error: dbError } = await supabase
@@ -81,7 +73,7 @@ export async function authenticateToken(request: Request) {
  */
 export async function authenticateCustomer(email: string, password: string) {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await createServerClient(); 
 
     // Get customer from database
     const { data: customers, error: dbError } = await supabase
@@ -154,7 +146,7 @@ export async function authenticateCustomer(email: string, password: string) {
  */
 export async function authenticateStaffLogin(email: string, password: string) {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await createServerClient(); 
 
     // Get staff from database
     const { data: staff, error: dbError } = await supabase
@@ -253,7 +245,7 @@ export async function authenticateCustomerToken(request: Request) {
       };
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = await createServerClient(); 
 
     // Fetch customer details from Supabase
     const { data: customers, error: dbError } = await supabase
@@ -293,9 +285,6 @@ export async function authenticateCustomerToken(request: Request) {
  * Check if user is staff (must be called after authenticateToken)
  */
 export function isStaff(user: any) {
-  // This assumes the user object has a type field
-  // In your case, you might need to check differently
-  // Since authenticateToken returns staff, this is mainly for type checking
   return user && user.role; // Staff will have a role field
 }
 
