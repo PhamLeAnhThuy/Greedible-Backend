@@ -378,19 +378,13 @@ const swaggerSpec = {
 };
 
 export const getSwaggerSpec = async () => {
-  // Use production domain if available, otherwise fall back to VERCEL_URL or localhost
-  const serverUrl = process.env.NEXT_PUBLIC_API_URL 
-    ? process.env.NEXT_PUBLIC_API_URL
-    : process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000';
-
+  // Use relative server URL so Swagger UI calls same origin to avoid CORS issues on Vercel
   return {
     ...swaggerSpec,
     servers: [
       {
-        url: serverUrl,
-        description: 'API Server'
+        url: '/',
+        description: 'Current origin'
       }
     ]
   };
