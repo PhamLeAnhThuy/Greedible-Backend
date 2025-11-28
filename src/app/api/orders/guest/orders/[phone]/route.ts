@@ -25,10 +25,10 @@ import { createServerClient } from '@/src/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { phone: string } }
+  context: { params: Promise<{ phone: string }> }
 ) {
   try {
-    const { phone } = context.params;
+    const { phone } = await context.params;
 
     console.log('Fetching guest orders for phone:', phone);
 
