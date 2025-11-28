@@ -10,7 +10,7 @@ function walk(dir) {
   for (const e of entries) {
     const full = path.join(dir, e.name);
     if (e.isDirectory()) files.push(...walk(full));
-    else if (e.isFile() && e.name === 'route.ts') files.push(full);
+    else if (e.isFile() && e.name.endsWith('.ts')) files.push(full);
   }
   return files;
 }
@@ -20,51 +20,71 @@ function routePathFromFile(file) {
   return '/' + rel;
 }
 
-function validateFile(file) {
-  const content = fs.readFileSync(file, 'utf-8');
-  const errors = [];
-  const rPath = routePathFromFile(file);
-  const handlerRegex = /export\s+async\s+function\s+(GET|POST|PUT|PATCH|DELETE|OPTIONS)\s*\(/g;
-  const matches = [...content.matchAll(handlerRegex)];
-
-  for (const m of matches) {
-    const method = m[1];
-    const startIdx = m.index || 0;
-    const pre = content.slice(0, startIdx);
-    const lines = pre.split(/\r?\n/);
-    const searchWindow = lines.slice(Math.max(0, lines.length - 120)).join('\n');
-
-    const swaggerBlockRegex = new RegExp(`/\\*\\*([\\s\\S]*?)\\*/`, 'g');
-    let block = null;
-    let match;
-    while ((match = swaggerBlockRegex.exec(searchWindow))) {
-      block = match[0];
-    }
-    let hasBlock = false;
-    if (block) {
-      const pathLine = new RegExp(`@swagger[\\s\\S]*?${rPath.replace(/[.*+?^${}()|[\\]\\\\]/g, r => `\\${r}`)}:`);
-      const methodLine = new RegExp(`\n\\s*${method.toLowerCase()}:`);
-      if (pathLine.test(block) && methodLine.test(block)) {
-        hasBlock = true;
-      }
-    }
-
-    if (!hasBlock) {
-      errors.push(`${rPath} ${method}: missing @swagger block above handler in ${path.relative(root, file)}`);
+function collectHandlers(files) {
+  const handlers = [];
+  for (const file of files) {
+    if (!file.endsWith('route.ts')) continue;
+    const content = fs.readFileSync(file, 'utf-8');
+    const rPath = routePathFromFile(file);
+    const handlerRegex = /export\s+async\s+function\s+(GET|POST|PUT|PATCH|DELETE|OPTIONS)\s*\(/g;
+    const matches = [...content.matchAll(handlerRegex)];
+    for (const m of matches) {
+      handlers.push({ path: rPath, method: m[1].toUpperCase(), file });
     }
   }
-
-  return errors;
+  return handlers;
 }
 
-const files = walk(apiDir);
-let allErrors = [];
-for (const f of files) {
-  allErrors = allErrors.concat(validateFile(f));
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, r => `\\${r}`);
 }
 
-if (allErrors.length) {
-  console.error('Swagger documentation validation failed:\n' + allErrors.map(e => ` - ${e}`).join('\n'));
+function collectDocs(files) {
+  const documented = new Set();
+  const blockRegex = /\/\*\*([\s\S]*?)\*\//g;
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf-8');
+    let m;
+    while ((m = blockRegex.exec(content))) {
+      const block = m[0];
+      if (!/@swagger/.test(block)) continue;
+      // Find all paths defined in this block
+      const pathMatches = [...block.matchAll(/^\s*\/(api\/[^\s:]+):/gmi)];
+      for (const pm of pathMatches) {
+        const p = '/' + pm[1];
+        // For this path segment of the block, extract methods
+        const pathSectionRegex = new RegExp(`${escapeRegex(pm[0])}([\\s\\S]*?)(^\\s*\/api\/|\n\*\/|$)`, 'mi');
+        const segMatch = block.match(pathSectionRegex);
+        const seg = segMatch ? segMatch[1] : '';
+        const methodMatches = [...seg.matchAll(/^\s*(get|post|put|patch|delete|options):/gmi)];
+        for (const mm of methodMatches) {
+          documented.add(`${mm[1].toUpperCase()} ${p}`);
+        }
+      }
+    }
+  }
+  return documented;
+}
+
+const allTsFiles = walk(apiDir);
+const handlers = collectHandlers(allTsFiles);
+const docsSet = collectDocs(allTsFiles);
+
+const excludes = new Set([
+  'GET /api/swagger', // exclude internal spec route
+]);
+
+const errors = [];
+for (const h of handlers) {
+  const key = `${h.method} ${h.path}`;
+  if (excludes.has(key)) continue;
+  if (!docsSet.has(key)) {
+    errors.push(`${h.path} ${h.method}: missing @swagger docs (no block found anywhere). Handler in ${path.relative(root, h.file)}`);
+  }
+}
+
+if (errors.length) {
+  console.error('Swagger documentation validation failed:\n' + errors.map(e => ` - ${e}`).join('\n'));
   process.exit(1);
 }
 

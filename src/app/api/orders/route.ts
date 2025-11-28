@@ -83,6 +83,39 @@ import { handleCorsOptions } from '@/src/lib/utils/cors';
  *         description: Server error
  */
 
+/**
+ * @swagger
+ * /api/orders:
+ *   post:
+ *     tags: [Orders]
+ *     summary: Create a guest order
+ *     description: Create a new order for guest users. Includes auto-complete after 15 seconds.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [items, delivery_address, delivery_distance, guest_contact]
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     id: { type: number, description: 'Recipe ID' }
+ *                     quantity: { type: number }
+ *                     price: { type: number }
+ *               delivery_address: { type: string }
+ *               delivery_distance: { type: number }
+ *               delivery_charge: { type: number }
+ *               payment_method: { type: string, enum: [cash, card, momo] }
+ *               guest_contact: { type: string, description: 'Guest phone number' }
+ *     responses:
+ *       201: { description: Guest order created successfully }
+ *       400: { description: Validation error }
+ *       500: { description: Server error }
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -208,6 +241,27 @@ export async function POST(request: Request) {
   }
 }
 
+/**
+ * @swagger
+ * /api/orders:
+ *   get:
+ *     tags: [Orders]
+ *     summary: Get all orders (staff only)
+ *     description: Retrieve all orders with sorting options. Requires staff authentication.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: sortBy
+ *         schema: { type: string, enum: [time, total_price], default: time }
+ *       - in: query
+ *         name: sortOrder
+ *         schema: { type: string, enum: [asc, desc], default: desc }
+ *     responses:
+ *       200: { description: List of all orders }
+ *       401: { description: Unauthorized }
+ *       500: { description: Server error }
+ */
 export async function GET(request: Request) {
   try {
     const authResult = await authenticateToken(request);
@@ -269,6 +323,15 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * @swagger
+ * /api/orders:
+ *   options:
+ *     tags: [Orders]
+ *     summary: CORS preflight for orders endpoint
+ *     responses:
+ *       204: { description: No Content }
+ */
 export async function OPTIONS() {
   return handleCorsOptions();
 }
