@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 import { createServerClient } from '@/src/lib/supabase/server';
 
 export async function POST(request: Request) {
@@ -46,13 +47,37 @@ export async function POST(request: Request) {
 
     const supabase = await createServerClient();
 
-    const { error: insertError } = await supabase
+    // Check if email or phone already exists
+    const { data: existingUsers, error: checkError } = await supabase
+      .from('customer')
+      .select('*')
+      .or(`email.eq.${email},phone.eq.${phone}`)
+      .limit(1);
+
+    if (checkError) {
+      throw checkError;
+    }
+
+    if (existingUsers && existingUsers.length > 0) {
+      const duplicate = existingUsers[0];
+      let message = 'User with this information already exists';
+      if (duplicate.email === email) {
+        message = 'Email already registered';
+      } else if (duplicate.phone === phone) {
+        message = 'Phone already registered';
+      }
+      return NextResponse.json({ success: false, message }, { status: 400 });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const { data: newUser, error: insertError } = await supabase
       .from('customer')
       .insert({
         customer_name,
         phone,
         email,
-        password,
+        password: hashedPassword,
         ward,
         district,
         street,
@@ -61,16 +86,19 @@ export async function POST(request: Request) {
         block,
         floor,
         room_number
-      });
+      })
+      .select('customer_id, customer_name, email, phone, loyalty_point')
+      .single();
 
     if (insertError) {
       console.error('Error inserting customer:', insertError);
       return NextResponse.json({ success: false, message: 'Error registering customer' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: 'Customer registered successfully' });
+    return NextResponse.json({ success: true, message: 'Customer registered successfully', user: newUser }, { status: 201 });
   } catch (err) {
     console.error('Error registering customer:', err);
-    return NextResponse.json({ success: false, message: 'Error registering customer' }, { status: 500 });
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    return NextResponse.json({ success: false, message: 'Error registering customer', error: process.env.NODE_ENV === 'development' ? errorMessage : undefined }, { status: 500 });
   }
 }

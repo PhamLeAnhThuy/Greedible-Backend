@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 import { createServerClient } from '@/src/lib/supabase/server';
 import jwt from 'jsonwebtoken';
 
@@ -28,14 +29,23 @@ export async function POST(request: Request) {
 
     const user = users[0];
 
-    // For migrated users where password may be stored in plain text, compare directly
     let passwordMatch = false;
-    if (user.password && user.password.startsWith && user.password.startsWith('$2')) {
-      // bcrypt hashed password stored; we can't compare here without bcrypt, but keep behavior similar to old code
-      // In this simplified migration we'll compare plaintext (assuming already migrated to hashed elsewhere)
-      passwordMatch = password === user.password;
+
+    // Check if password is hashed (starts with $2)
+    if (user.password && user.password.startsWith('$2')) {
+      passwordMatch = await bcrypt.compare(password, user.password);
     } else {
+      // Compare plain text password
       passwordMatch = password === user.password;
+
+      // If password matches and is plain text, hash it and update the database
+      if (passwordMatch) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await supabase
+          .from('customer')
+          .update({ password: hashedPassword })
+          .eq('customer_id', user.customer_id);
+      }
     }
 
     if (!passwordMatch) {
