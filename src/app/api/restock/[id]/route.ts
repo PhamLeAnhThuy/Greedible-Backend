@@ -28,14 +28,14 @@ import { authenticateToken } from '@/src/lib/auth/middleware';
  *         description: Server error
  */
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authResult = await authenticateToken(request);
     if (authResult.error) {
       return NextResponse.json({ success: false, message: authResult.error.message }, { status: authResult.error.status });
     }
 
-    const { id: restockId } = params;
+    const { id: restockId } = await params;
 
     const supabase = await createServerClient();
 

@@ -91,9 +91,9 @@ import { createServerClient } from '@/src/lib/supabase/server';
  *         description: Server error
  */
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: recipeId } = params;
+    const { id: recipeId } = await params;
 
     const supabase = await createServerClient();
 
@@ -151,9 +151,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: recipeId } = params;
+    const { id: recipeId } = await params;
     const body = await request.json();
     const { 
       recipe_name, 
@@ -222,9 +222,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: recipeId } = params;
+    const { id: recipeId } = await params;
 
     const supabase = await createServerClient();
 

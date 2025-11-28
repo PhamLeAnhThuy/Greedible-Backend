@@ -41,7 +41,7 @@ import { authenticateToken } from '@/src/lib/auth/middleware';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { scheduleId: string } }
+  { params }: { params: Promise<{ scheduleId: string }> }
 ) {
   try {
     const authResult = await authenticateToken(request);
@@ -52,7 +52,7 @@ export async function DELETE(
       );
     }
 
-    const { scheduleId } = params;
+    const { scheduleId } = await params;
 
     if (!scheduleId || isNaN(Number(scheduleId))) {
       return NextResponse.json(
