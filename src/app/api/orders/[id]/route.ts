@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
 
 /**
@@ -23,9 +23,13 @@ import { createServerClient } from '@/src/lib/supabase/server';
  *         description: Server error
  */
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id: orderId } = params;
+    // Next.js 15 requires awaiting params
+    const { id: orderId } = await context.params;
 
     const supabase = await createServerClient();
 
@@ -42,13 +46,12 @@ export async function GET(request: Request, { params }: { params: { id: string }
       .single();
 
     if (error || !order) {
-      return NextResponse.json({
-        success: false,
-        message: 'Order not found'
-      }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: 'Order not found' },
+        { status: 404 }
+      );
     }
 
-    // Format response
     const formattedOrder = {
       ...order,
       items: order.order_detail.map((od: any) => ({
@@ -64,10 +67,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
   } catch (error) {
     console.error('Error fetching order details:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({
-      success: false,
-      message: 'Error fetching order details',
-      error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
-    }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Error fetching order details',
+        error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
+      { status: 500 }
+    );
   }
 }
