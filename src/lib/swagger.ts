@@ -378,9 +378,12 @@ const swaggerSpec = {
 };
 
 export const getSwaggerSpec = async () => {
-  const serverUrl = process.env.VERCEL_URL
+  // Use production domain if available, otherwise fall back to VERCEL_URL or localhost
+  const serverUrl = process.env.NEXT_PUBLIC_API_URL 
+    ? process.env.NEXT_PUBLIC_API_URL
+    : process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    : 'http://localhost:3000';
 
   return {
     ...swaggerSpec,
