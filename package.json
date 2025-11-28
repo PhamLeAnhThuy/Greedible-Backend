@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run swagger:gen && npm run swagger:check && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "swagger:gen": "node ./scripts/swagger/generate.js",
+    "swagger:check": "node ./scripts/swagger/validate.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.81.1",
@@ -24,6 +26,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
+    "swagger-jsdoc": "^6.2.8",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
