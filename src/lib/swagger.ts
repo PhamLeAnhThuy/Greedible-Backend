@@ -1,4 +1,4 @@
-export const swaggerSpec = {
+const swaggerSpec = {
   openapi: '3.0.0',
   info: {
     title: 'Greedible API',
@@ -9,12 +9,6 @@ export const swaggerSpec = {
       email: 'support@greedible.com'
     }
   },
-  servers: [
-    {
-      url: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
-      description: 'API Server'
-    }
-  ],
   components: {
     securitySchemes: {
       BearerAuth: {
@@ -383,4 +377,18 @@ export const swaggerSpec = {
   }
 };
 
-export const getSwaggerSpec = () => swaggerSpec;
+export const getSwaggerSpec = async () => {
+  const serverUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+  return {
+    ...swaggerSpec,
+    servers: [
+      {
+        url: serverUrl,
+        description: 'API Server'
+      }
+    ]
+  };
+};
