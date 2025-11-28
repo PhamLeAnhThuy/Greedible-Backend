@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
 import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
@@ -28,18 +28,25 @@ import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
  *         description: Server error
  */
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
     const authResult = await authenticateCustomerToken(request);
     if (authResult.error) {
-      return NextResponse.json({ success: false, message: authResult.error.message }, { status: authResult.error.status });
+      return NextResponse.json(
+        { success: false, message: authResult.error.message },
+        { status: authResult.error.status }
+      );
     }
 
-    const { id: orderId } = params;
+    // IMPORTANT: Next.js 15 requires awaiting params
+    const { id: orderId } = await context.params;
 
     const supabase = await createServerClient();
 
-    // Verify order belongs to customer
+    // Ensure the order belongs to the authenticated customer
     const { data: order, error: orderError } = await supabase
       .from('sale')
       .select('*')
@@ -48,27 +55,32 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       .single();
 
     if (orderError || !order) {
-      return NextResponse.json({
-        success: false,
-        message: 'Order not found or not authorized'
-      }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: 'Order not found or not authorized' },
+        { status: 404 }
+      );
     }
 
-    // Calculate loyalty points (1 point per 1000 VND)
+    // Loyalty points: 1 point per 1000 VND
     const loyaltyPointsEarned = Math.floor(order.total_amount / 1000);
 
     // Update order status
     const { error: updateError } = await supabase
       .from('sale')
-      .update({ status: 'Completed', completion_time: new Date().toISOString() })
+      .update({
+        status: 'Completed',
+        completion_time: new Date().toISOString()
+      })
       .eq('sale_id', orderId);
 
     if (updateError) throw updateError;
 
-    // Update loyalty points
+    // Update customer loyalty points
     const { error: loyaltyError } = await supabase
       .from('customer')
-      .update({ loyalty_point: { increment: loyaltyPointsEarned } })
+      .update({
+        loyalty_point: { increment: loyaltyPointsEarned }
+      })
       .eq('customer_id', authResult.user!.customer_id);
 
     if (loyaltyError) throw loyaltyError;
@@ -81,10 +93,14 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   } catch (error) {
     console.error('Error completing order:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({
-      success: false,
-      message: 'Error completing order',
-      error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
-    }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Error completing order',
+        error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
+      { status: 500 }
+    );
   }
 }
