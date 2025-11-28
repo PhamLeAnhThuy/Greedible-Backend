@@ -1,82 +1,169 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
+import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
 /**
  * @swagger
- * /api/orders/{orderId}:
- *   get:
- *     summary: Get order details
- *     description: Retrieve detailed information for a specific order including items.
+ * /api/orders/create:
+ *   post:
+ *     summary: Create an order for authenticated customer
+ *     description: Create a new order for authenticated customers with loyalty points support.
  *     tags: [Orders]
- *     parameters:
- *       - in: path
- *         name: orderId
- *         required: true
- *         schema:
- *           type: number
+ *     security:
+ *       - Bearer: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - items
+ *               - delivery_address
+ *               - delivery_distance
+ *               - delivery_charge
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: number
+ *                     quantity:
+ *                       type: number
+ *                     price:
+ *                       type: number
+ *               delivery_address:
+ *                 type: string
+ *               delivery_distance:
+ *                 type: number
+ *               delivery_charge:
+ *                 type: number
+ *               payment_method:
+ *                 type: string
+ *                 enum: [cash, card, momo]
+ *               loyalty_points_used:
+ *                 type: number
+ *                 default: 0
+ *               loyalty_points_earned:
+ *                 type: number
+ *                 default: 0
  *     responses:
- *       200:
- *         description: Order details
- *       404:
- *         description: Order not found
+ *       201:
+ *         description: Order created successfully
+ *       401:
+ *         description: Unauthorized
+ *       400:
+ *         description: Validation error
  *       500:
  *         description: Server error
  */
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request) {
   try {
-    const orderId = params.id;
-    const supabase = await createServerClient();
-
-    const { data: order, error } = await supabase
-      .from('sale')
-      .select(`
-        *,
-        order_detail(
-          recipe:recipe_id(recipe_id, recipe_name, price, image_url),
-          quantity
-        )
-      `)
-      .eq('sale_id', orderId)
-      .single();
-
-    if (error || !order) {
-      return NextResponse.json(
-        { success: false, message: 'Order not found' },
-        { status: 404 }
-      );
+    const authResult = await authenticateCustomerToken(request);
+    if (authResult.error) {
+      return NextResponse.json({ success: false, message: authResult.error.message }, { status: authResult.error.status });
     }
 
-    const formattedOrder = {
-      ...order,
-      items: order.order_detail.map((od: any) => ({
-        recipe_id: od.recipe.recipe_id,
-        recipe_name: od.recipe.recipe_name,
-        quantity: od.quantity,
-        price: od.recipe.price,
-        image_url: od.recipe.image_url,
-      })),
-    };
+    const body = await request.json();
+    const {
+      items,
+      delivery_address,
+      delivery_distance,
+      delivery_charge,
+      payment_method,
+      loyalty_points_used = 0,
+      loyalty_points_earned = 0
+    } = body;
 
-    return NextResponse.json({ success: true, order: formattedOrder });
-  } catch (error) {
-    console.error('Error fetching order details:', error);
-
-    return NextResponse.json(
-      {
+    if (!items || !delivery_address || delivery_distance === undefined) {
+      return NextResponse.json({
         success: false,
-        message: 'Error fetching order details',
-        error:
-          process.env.NODE_ENV === 'development'
-            ? error instanceof Error
-              ? error.message
-              : 'Unknown error'
-            : undefined,
-      },
-      { status: 500 }
-    );
+        message: 'Missing required fields'
+      }, { status: 400 });
+    }
+
+    const supabase = await createServerClient();
+
+    // Calculate total amount
+    const totalAmount = items.reduce((total: number, item: any) => total + (item.price * item.quantity), 0);
+    const normalizedPaymentMethod = payment_method === 'momo wallet' ? 'momo' : payment_method || 'cash';
+
+    // Create sale record
+    const { data: newSale, error: saleError } = await supabase
+      .from('sale')
+      .insert({
+        total_amount: totalAmount,
+        payment_method: normalizedPaymentMethod,
+        status: 'Pending',
+        customer_id: authResult.user!.customer_id,
+        delivery_address,
+        delivery_distance,
+        delivery_charge
+      })
+      .select('sale_id')
+      .single();
+
+    if (saleError) throw saleError;
+
+    const saleId = newSale.sale_id;
+
+    // Insert order details
+    for (const item of items) {
+      const { error: detailError } = await supabase
+        .from('order_detail')
+        .insert({
+          sale_id: saleId,
+          recipe_id: item.id,
+          quantity: item.quantity
+        });
+
+      if (detailError) throw detailError;
+    }
+
+    // Update loyalty points
+    let loyaltyPointsAdjustment = -loyalty_points_used;
+    // Only add earned points if order is completed
+    if (body.status === 'Completed') {
+      loyaltyPointsAdjustment += loyalty_points_earned;
+    }
+
+    if (loyaltyPointsAdjustment !== 0) {
+      const { error: loyaltyError } = await supabase
+        .from('customer')
+        .update({ loyalty_point: loyaltyPointsAdjustment })
+        .eq('customer_id', authResult.user!.customer_id);
+
+      if (loyaltyError) throw loyaltyError;
+    }
+
+    // Auto-complete after 15 seconds
+    setTimeout(async () => {
+      try {
+        await supabase
+          .from('sale')
+          .update({ status: 'Completed', completion_time: new Date().toISOString() })
+          .eq('sale_id', saleId)
+          .eq('status', 'Pending');
+      } catch (err) {
+        console.error('Auto-complete error:', err);
+      }
+    }, 15000);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Order created successfully',
+      orderId: saleId
+    }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating order:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({
+      success: false,
+      message: 'Error creating order',
+      error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 });
   }
 }
