@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 declare global {
   interface Window {
     SwaggerUIBundle: any;
+    SwaggerUIStandalonePreset: any;
   }
 }
 
@@ -19,27 +20,49 @@ export default function SwaggerPage() {
     link.href = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui.min.css';
     document.head.appendChild(link);
 
-    // Load Swagger UI JS
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui.min.js';
-    script.async = true;
-    script.onload = () => {
-      // Initialize Swagger UI
-      (window.SwaggerUIBundle as any)({
+    // Load Swagger UI bundle and standalone preset JS from CDN
+    let bundleLoaded = false;
+    let presetLoaded = false;
+
+    const tryInit = () => {
+      if (!bundleLoaded || !presetLoaded) return;
+      const Bundle = (window as any).SwaggerUIBundle;
+      const Preset = (window as any).SwaggerUIStandalonePreset;
+      if (!Bundle) {
+        console.error('Swagger UI bundle not available on window');
+        return;
+      }
+
+      Bundle({
         url: '/api/swagger',
         dom_id: '#swagger-ui',
-        presets: [
-          (window.SwaggerUIBundle as any).presets.apis,
-          (window.SwaggerUIBundle as any).SwaggerUIStandalonePreset
-        ],
+        presets: [Bundle.presets.apis, Preset],
         layout: 'BaseLayout',
         deepLinking: true,
-        onComplete: () => {
-          setIsLoading(false);
-        }
+        onComplete: () => setIsLoading(false)
       });
     };
-    document.body.appendChild(script);
+
+    const scriptBundle = document.createElement('script');
+    scriptBundle.src = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui-bundle.min.js';
+    scriptBundle.async = true;
+    scriptBundle.onload = () => {
+      bundleLoaded = true;
+      tryInit();
+    };
+    scriptBundle.onerror = () => console.error('Failed to load swagger-ui-bundle');
+
+    const scriptPreset = document.createElement('script');
+    scriptPreset.src = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui-standalone-preset.min.js';
+    scriptPreset.async = true;
+    scriptPreset.onload = () => {
+      presetLoaded = true;
+      tryInit();
+    };
+    scriptPreset.onerror = () => console.error('Failed to load swagger-ui-standalone-preset');
+
+    document.body.appendChild(scriptBundle);
+    document.body.appendChild(scriptPreset);
 
     return () => {
       // Cleanup if needed
