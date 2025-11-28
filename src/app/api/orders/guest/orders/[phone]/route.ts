@@ -51,7 +51,7 @@ export async function GET(
     const { data: orders, error } = await supabase
       .from('sale')
       .select(`
-        *,
+        *,  
         order_detail(
           recipe:recipe_id(recipe_id, recipe_name, price, image_url),
           quantity

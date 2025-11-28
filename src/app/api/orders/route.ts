@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
 import { authenticateToken } from '@/src/lib/auth/middleware';
+import { handleCorsOptions } from '@/src/lib/utils/cors';
 
 /**
  * @swagger
@@ -266,4 +267,8 @@ export async function GET(request: Request) {
       error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
     }, { status: 500 });
   }
+}
+
+export async function OPTIONS() {
+  return handleCorsOptions();
 }
