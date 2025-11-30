@@ -175,7 +175,7 @@ export async function POST(request: Request) {
     const { data: existingUsers, error: checkError } = await supabase
       .from('customer')
       .select('*')
-      .or(`email.eq.${email},phone.eq.${phone}`)
+      .or(`email.eq."${email}",phone.eq."${phone}"`)
       .limit(1);
 
     if (checkError) {
@@ -196,6 +196,19 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Build address object
+    const addressObject = {
+      ward,
+      district,
+      street,
+      houseNumber: house_number,
+      ...(building_name && { buildingName: building_name }),
+      ...(block && { block }),
+      ...(floor && { floor }),
+      ...(room_number && { roomNumber: room_number })
+    };
+    const addressJson = JSON.stringify(addressObject);
+
     const { data: newUser, error: insertError } = await supabase
       .from('customer')
       .insert({
@@ -204,14 +217,7 @@ export async function POST(request: Request) {
         email,
         password: hashedPassword,
         loyalty_point: 0,
-        ward,
-        district,
-        street,
-        house_number,
-        building_name,
-        block,
-        floor,
-        room_number
+        address: addressJson
       })
       .select('customer_id, customer_name, email, phone, loyalty_point')
       .single();
