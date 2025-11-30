@@ -2,6 +2,130 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { createServerClient } from '@/src/lib/supabase/server';
 
+/**
+ * @swagger
+ * /api/customers/register:
+ *   post:
+ *     summary: Register a new customer
+ *     description: Creates a new customer account with full address details after validating phone, email, and required fields.
+ *     tags: [Customers]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - customer_name
+ *               - phone
+ *               - email
+ *               - password
+ *               - ward
+ *               - district
+ *               - street
+ *               - house_number
+ *             properties:
+ *               customer_name:
+ *                 type: string
+ *                 example: "John Doe"
+ *               phone:
+ *                 type: string
+ *                 example: "0987654321"
+ *               email:
+ *                 type: string
+ *                 example: "john@example.com"
+ *               password:
+ *                 type: string
+ *                 example: "mypassword123"
+ *               ward:
+ *                 type: string
+ *                 example: "Ward 5"
+ *               district:
+ *                 type: string
+ *                 example: "District 1"
+ *               street:
+ *                 type: string
+ *                 example: "Nguyen Trai"
+ *               house_number:
+ *                 type: string
+ *                 example: "123A"
+ *               building_name:
+ *                 type: string
+ *                 nullable: true
+ *                 example: "Sunrise Building"
+ *               block:
+ *                 type: string
+ *                 nullable: true
+ *                 example: "Block B"
+ *               floor:
+ *                 type: string
+ *                 nullable: true
+ *                 example: "10"
+ *               room_number:
+ *                 type: string
+ *                 nullable: true
+ *                 example: "1005"
+ *     responses:
+ *       201:
+ *         description: Successfully registered customer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Customer registered successfully"
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     customer_id:
+ *                       type: integer
+ *                       example: 12
+ *                     customer_name:
+ *                       type: string
+ *                       example: "John Doe"
+ *                     email:
+ *                       type: string
+ *                       example: "john@example.com"
+ *                     phone:
+ *                       type: string
+ *                       example: "0987654321"
+ *                     loyalty_point:
+ *                       type: integer
+ *                       example: 0
+ *       400:
+ *         description: Validation error (phone/email invalid or already exists)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Email already registered"
+ *       500:
+ *         description: Server error during registration
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Error registering customer"
+ */
+
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
