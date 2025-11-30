@@ -36,7 +36,6 @@ module.exports = {
     { name: 'Recipes', description: 'Recipe CRUD operations with image uploads to Supabase Storage' },
     { name: 'Restock', description: 'Inventory restocking orders and daily import tracking' },
     { name: 'Sales', description: 'Daily and monthly sales reporting with order count aggregation' },
-    { name: 'Schedules', description: 'Staff shift scheduling and management' },
   ],
   servers: [ { url: '/', description: 'Current origin' } ]
 };

@@ -3,41 +3,6 @@ import { createServerClient } from '@/src/lib/supabase/server';
 import { authenticateToken } from '@/src/lib/auth/middleware';
 import { paymentService } from '@/src/lib/services/paymentService';
 
-/**
- * @swagger
- * /api/payments/create:
- *   post:
- *     summary: Create a payment
- *     description: Initiate payment for an order via MoMo or Vietcombank (staff only).
- *     tags: [Payments]
- *     security:
- *       - Bearer: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - orderId
- *               - paymentMethod
- *             properties:
- *               orderId:
- *                 type: number
- *               paymentMethod:
- *                 type: string
- *                 enum: [momo, vietcombank]
- *     responses:
- *       200:
- *         description: Payment created, returns payment URL
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Order not found
- *       500:
- *         description: Server error
- */
-
 export async function POST(request: Request) {
   try {
     const authResult = await authenticateToken(request);
