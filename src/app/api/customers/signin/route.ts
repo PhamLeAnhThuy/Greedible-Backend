@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 
 /**
  * @swagger
- * /api/customer/signin:
+ * /api/customers/signin:
  *   post:
  *     summary: Customer login
  *     description: Authenticates a customer using email and password. Returns a JWT token on success.
