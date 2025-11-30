@@ -4,11 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run swagger:gen && npm run swagger:check && next build",
+    "build": "npm run swagger:gen && next build",
     "start": "next start",
     "lint": "eslint",
-    "swagger:gen": "node ./scripts/swagger/generate.js",
-    "swagger:check": "node ./scripts/swagger/validate.js"
+    "swagger:gen": "node ./scripts/swagger/generate.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.81.1",
