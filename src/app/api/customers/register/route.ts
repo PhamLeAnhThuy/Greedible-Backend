@@ -179,6 +179,7 @@ export async function POST(request: Request) {
       .limit(1);
 
     if (checkError) {
+      console.error('Error checking existing users:', checkError);
       throw checkError;
     }
 
@@ -202,6 +203,7 @@ export async function POST(request: Request) {
         phone,
         email,
         password: hashedPassword,
+        loyalty_point: 0,
         ward,
         district,
         street,
@@ -216,7 +218,12 @@ export async function POST(request: Request) {
 
     if (insertError) {
       console.error('Error inserting customer:', insertError);
-      return NextResponse.json({ success: false, message: 'Error registering customer' }, { status: 500 });
+      const errorDetails = insertError.message || insertError.details || JSON.stringify(insertError);
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Error registering customer',
+        error: process.env.NODE_ENV === 'development' ? errorDetails : undefined
+      }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: 'Customer registered successfully', user: newUser }, { status: 201 });
