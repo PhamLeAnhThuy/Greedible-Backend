@@ -2,32 +2,6 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
 import { authenticateToken } from '@/src/lib/auth/middleware';
 
-/**
- * @swagger
- * /api/restock/{id}:
- *   get:
- *     summary: Get restock order details
- *     description: Retrieve detailed information for a specific restock order (staff only).
- *     tags: [Restock]
- *     security:
- *       - Bearer: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: number
- *     responses:
- *       200:
- *         description: Restock details retrieved successfully
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Restock not found
- *       500:
- *         description: Server error
- */
-
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authResult = await authenticateToken(request);

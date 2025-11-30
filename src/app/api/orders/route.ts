@@ -323,15 +323,6 @@ export async function GET(request: Request) {
   }
 }
 
-/**
- * @swagger
- * /api/orders:
- *   options:
- *     tags: [Orders]
- *     summary: CORS preflight for orders endpoint
- *     responses:
- *       204: { description: No Content }
- */
 export async function OPTIONS() {
   return handleCorsOptions();
 }

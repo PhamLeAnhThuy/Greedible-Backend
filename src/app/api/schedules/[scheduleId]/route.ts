@@ -2,43 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
 import { authenticateToken } from '@/src/lib/auth/middleware';
 
-/**
- * @swagger
- * /api/schedules/{scheduleId}:
- *   delete:
- *     summary: Remove staff from a shift
- *     description: Deletes a specific schedule entry (removes a staff member from a shift)
- *     tags:
- *       - Schedules
- *     parameters:
- *       - name: scheduleId
- *         in: path
- *         required: true
- *         description: Schedule entry ID
- *         schema:
- *           type: number
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: Staff removed from shift successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *       404:
- *         description: Schedule entry not found
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Internal server error
- */
-
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ scheduleId: string }> }

@@ -2,26 +2,6 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
 import { paymentService } from '@/src/lib/services/paymentService';
 
-/**
- * @swagger
- * /api/payments/vietcombank/callback:
- *   post:
- *     summary: Vietcombank payment callback
- *     description: Webhook endpoint for Vietcombank to send payment status updates.
- *     tags: [Payments]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       200:
- *         description: Callback processed
- *       500:
- *         description: Server error
- */
-
 export async function POST(request: Request) {
   try {
     const data = await request.json();
