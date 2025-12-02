@@ -3,119 +3,6 @@ import { createServerClient } from '@/src/lib/supabase/server';
 import { authenticateToken } from '@/src/lib/auth/middleware';
 import { handleCorsOptions } from '@/src/lib/utils/cors';
 
-/**
- * @swagger
- * /api/orders:
- *   post:
- *     summary: Create a guest order (no authentication required)
- *     description: Create a new order for guest users. Includes auto-complete after 15 seconds.
- *     tags: [Orders]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - items
- *               - delivery_address
- *               - delivery_distance
- *               - delivery_charge
- *               - guest_contact
- *             properties:
- *               items:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: number
- *                       description: Recipe ID
- *                     quantity:
- *                       type: number
- *                     price:
- *                       type: number
- *               delivery_address:
- *                 type: string
- *               delivery_distance:
- *                 type: number
- *               delivery_charge:
- *                 type: number
- *               payment_method:
- *                 type: string
- *                 enum: [cash, card, momo]
- *                 default: cash
- *               guest_contact:
- *                 type: string
- *                 description: Guest phone number
- *     responses:
- *       201:
- *         description: Guest order created successfully
- *       400:
- *         description: Validation error
- *       500:
- *         description: Server error
- *   get:
- *     summary: Get all orders (staff only)
- *     description: Retrieve all orders with sorting options. Requires staff authentication.
- *     tags: [Orders]
- *     security:
- *       - Bearer: []
- *     parameters:
- *       - in: query
- *         name: sortBy
- *         schema:
- *           type: string
- *           enum: [time, total_price]
- *           default: time
- *       - in: query
- *         name: sortOrder
- *         schema:
- *           type: string
- *           enum: [asc, desc]
- *           default: desc
- *     responses:
- *       200:
- *         description: List of all orders
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
- */
-
-/**
- * @swagger
- * /api/orders:
- *   post:
- *     tags: [Orders]
- *     summary: Create a guest order
- *     description: Create a new order for guest users. Includes auto-complete after 15 seconds.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [items, delivery_address, delivery_distance, guest_contact]
- *             properties:
- *               items:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     id: { type: number, description: 'Recipe ID' }
- *                     quantity: { type: number }
- *                     price: { type: number }
- *               delivery_address: { type: string }
- *               delivery_distance: { type: number }
- *               delivery_charge: { type: number }
- *               payment_method: { type: string, enum: [cash, card, momo] }
- *               guest_contact: { type: string, description: 'Guest phone number' }
- *     responses:
- *       201: { description: Guest order created successfully }
- *       400: { description: Validation error }
- *       500: { description: Server error }
- */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -125,11 +12,11 @@ export async function POST(request: Request) {
       delivery_distance,
       delivery_charge,
       payment_method,
-      guest_contact
+      phone_number
     } = body;
 
     // Validation
-    if (!items || !delivery_address || !delivery_distance || !guest_contact) {
+    if (!items || !delivery_address || !delivery_distance || !phone_number) {
       return NextResponse.json({
         success: false,
         message: 'Missing required fields'
@@ -142,7 +29,7 @@ export async function POST(request: Request) {
     const { data: existingGuest } = await supabase
       .from('customer')
       .select('customer_id')
-      .eq('phone', guest_contact)
+      .eq('phone', phone_number)
       .ilike('customer_name', 'Guest_%')
       .limit(1);
 
@@ -153,15 +40,15 @@ export async function POST(request: Request) {
       console.log('Using existing guest customer ID:', customerId);
     } else {
       // Create new guest customer
-      const guestName = `Guest_${guest_contact}`;
+      const guestName = `Guest_${phone_number}`;
       const { data: newCustomer, error: customerError } = await supabase
         .from('customer')
         .insert({
           customer_name: guestName,
-          phone: guest_contact,
+          phone: phone_number,
           password: 'guest_password',
           loyalty_point: 0,
-          email: `guest_${guest_contact}@temp.com`,
+          email: `guest_${phone_number}@temp.com`,
           address: delivery_address
         })
         .select('customer_id')
@@ -241,27 +128,6 @@ export async function POST(request: Request) {
   }
 }
 
-/**
- * @swagger
- * /api/orders:
- *   get:
- *     tags: [Orders]
- *     summary: Get all orders (staff only)
- *     description: Retrieve all orders with sorting options. Requires staff authentication.
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: query
- *         name: sortBy
- *         schema: { type: string, enum: [time, total_price], default: time }
- *       - in: query
- *         name: sortOrder
- *         schema: { type: string, enum: [asc, desc], default: desc }
- *     responses:
- *       200: { description: List of all orders }
- *       401: { description: Unauthorized }
- *       500: { description: Server error }
- */
 export async function GET(request: Request) {
   try {
     const authResult = await authenticateToken(request);
