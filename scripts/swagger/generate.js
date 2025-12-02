@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const swaggerJSDoc = require('swagger-jsdoc');
 
-const base = require('../../src/lib/swagger.base.cjs');
+const base = require('../../src/app/api-docs/swagger.config.js');
 
 const root = path.resolve(__dirname, '../../');
 const outDir = path.join(root, '.generated');

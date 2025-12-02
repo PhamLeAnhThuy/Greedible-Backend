@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSwaggerSpec } from '@/src/lib/swagger';
+import { getSwaggerSpec } from '@/src/app/api-docs/swagger';
 
 /**
  * GET /api/swagger
