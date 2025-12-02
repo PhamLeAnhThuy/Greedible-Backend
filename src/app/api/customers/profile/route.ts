@@ -2,6 +2,97 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
 import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
+/**
+ * @swagger
+ * /api/customers/profile:
+ *   get:
+ *     summary: Get customer profile
+ *     description: Retrieves the profile information for the authenticated customer. Requires valid JWT token.
+ *     tags: [Customers]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Customer profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 12
+ *                     firstName:
+ *                       type: string
+ *                       example: "John"
+ *                     lastName:
+ *                       type: string
+ *                       example: "Doe"
+ *                     email:
+ *                       type: string
+ *                       example: "john@example.com"
+ *                     contactMobile:
+ *                       type: string
+ *                       example: "0987654321"
+ *                     loyaltyPoints:
+ *                       type: integer
+ *                       example: 50
+ *                     address:
+ *                       type: object
+ *                       nullable: true
+ *                       description: Parsed address JSON object
+ *                       example:
+ *                         ward: "Ward 5"
+ *                         district: "District 1"
+ *                         street: "Nguyen Trai"
+ *                         houseNumber: "123A"
+ *       401:
+ *         description: Unauthorized - No token provided or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "No token provided"
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User not found"
+ *       500:
+ *         description: Server error during profile retrieval
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Error fetching user profile"
+ */
+
 export async function GET(request: Request) {
   try {
     const authResult = await authenticateCustomerToken(request);

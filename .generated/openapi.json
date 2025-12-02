@@ -55,10 +55,6 @@
       "description": "Customer authentication, registration, profile management, and loyalty points"
     },
     {
-      "name": "Ingredients",
-      "description": "Ingredient CRUD operations, waste tracking, and restock history"
-    },
-    {
       "name": "Orders",
       "description": "Order creation for guests and customers, order history, and revenue tracking"
     },
@@ -79,10 +75,6 @@
       "description": "Daily and monthly sales reporting with order count aggregation"
     },
     {
-      "name": "Schedules",
-      "description": "Staff shift scheduling and management"
-    },
-    {
       "name": "Staff",
       "description": "Staff authentication, login, and profile endpoints"
     },
@@ -98,6 +90,603 @@
     }
   ],
   "paths": {
+    "/api/customers/profile": {
+      "get": {
+        "summary": "Get customer profile",
+        "description": "Retrieves the profile information for the authenticated customer. Requires valid JWT token.",
+        "tags": [
+          "Customers"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "firstName": {
+                          "type": "string",
+                          "example": "John"
+                        },
+                        "lastName": {
+                          "type": "string",
+                          "example": "Doe"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "john@example.com"
+                        },
+                        "contactMobile": {
+                          "type": "string",
+                          "example": "0987654321"
+                        },
+                        "loyaltyPoints": {
+                          "type": "integer",
+                          "example": 50
+                        },
+                        "address": {
+                          "type": "object",
+                          "nullable": true,
+                          "description": "Parsed address JSON object",
+                          "example": {
+                            "ward": "Ward 5",
+                            "district": "District 1",
+                            "street": "Nguyen Trai",
+                            "houseNumber": "123A"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - No token provided or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error during profile retrieval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error fetching user profile"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/register": {
+      "post": {
+        "summary": "Register a new customer",
+        "description": "Creates a new customer account with full address details after validating phone, email, and required fields.",
+        "tags": [
+          "Customers"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "customer_name",
+                  "phone",
+                  "email",
+                  "password",
+                  "ward",
+                  "district",
+                  "street",
+                  "house_number"
+                ],
+                "properties": {
+                  "customer_name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "0987654321"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "john@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "mypassword123"
+                  },
+                  "ward": {
+                    "type": "string",
+                    "example": "Ward 5"
+                  },
+                  "district": {
+                    "type": "string",
+                    "example": "District 1"
+                  },
+                  "street": {
+                    "type": "string",
+                    "example": "Nguyen Trai"
+                  },
+                  "house_number": {
+                    "type": "string",
+                    "example": "123A"
+                  },
+                  "building_name": {
+                    "type": "string",
+                    "nullable": true,
+                    "example": "Sunrise Building"
+                  },
+                  "block": {
+                    "type": "string",
+                    "nullable": true,
+                    "example": "Block B"
+                  },
+                  "floor": {
+                    "type": "string",
+                    "nullable": true,
+                    "example": "10"
+                  },
+                  "room_number": {
+                    "type": "string",
+                    "nullable": true,
+                    "example": "1005"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successfully registered customer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Customer registered successfully"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "customer_id": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "customer_name": {
+                          "type": "string",
+                          "example": "John Doe"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "john@example.com"
+                        },
+                        "phone": {
+                          "type": "string",
+                          "example": "0987654321"
+                        },
+                        "loyalty_point": {
+                          "type": "integer",
+                          "example": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (phone/email invalid or already exists)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Email already registered"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error during registration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error registering customer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/signin": {
+      "post": {
+        "summary": "Customer login",
+        "description": "Authenticates a customer using email and password. Returns a JWT token on success.",
+        "tags": [
+          "Customers"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "john@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "mypassword123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully authenticated customer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Sign in successful"
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "user": {
+                      "type": "object",
+                      "description": "Customer data excluding password",
+                      "example": {
+                        "customer_id": 12,
+                        "customer_name": "John Doe",
+                        "email": "john@example.com",
+                        "phone": "0987654321",
+                        "ward": "Ward 5",
+                        "district": "District 1",
+                        "street": "Nguyen Trai",
+                        "loyalty_point": 50
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing email or password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Email and password are required."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid login credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid email or password."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error during login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error signing in customer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/update-address": {
+      "put": {
+        "summary": "Update customer address",
+        "description": "Updates the address for the authenticated customer. Requires valid JWT token.",
+        "tags": [
+          "Customers"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "address"
+                ],
+                "properties": {
+                  "address": {
+                    "type": "object",
+                    "required": [
+                      "ward",
+                      "district",
+                      "street",
+                      "houseNumber"
+                    ],
+                    "properties": {
+                      "ward": {
+                        "type": "string",
+                        "example": "Ward 5"
+                      },
+                      "district": {
+                        "type": "string",
+                        "example": "District 1"
+                      },
+                      "street": {
+                        "type": "string",
+                        "example": "Nguyen Trai"
+                      },
+                      "houseNumber": {
+                        "type": "string",
+                        "example": "123A"
+                      },
+                      "buildingName": {
+                        "type": "string",
+                        "nullable": true,
+                        "example": "Sunrise Building"
+                      },
+                      "block": {
+                        "type": "string",
+                        "nullable": true,
+                        "example": "Block B"
+                      },
+                      "floor": {
+                        "type": "string",
+                        "nullable": true,
+                        "example": "10"
+                      },
+                      "roomNumber": {
+                        "type": "string",
+                        "nullable": true,
+                        "example": "1005"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Address updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Address updated successfully"
+                    },
+                    "address": {
+                      "type": "object",
+                      "description": "Updated address object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required address fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Required address fields are missing"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - No token provided or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error during address update",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error updating address"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/orders/{orderId}/complete": {
       "put": {
         "summary": "Mark customer order as completed",
@@ -107,7 +696,7 @@
         ],
         "security": [
           {
-            "Bearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -169,13 +758,11 @@
     "/api/orders/create": {
       "post": {
         "summary": "Create an order for authenticated customer",
-        "description": "Create a new order for authenticated customers with loyalty points support.",
-        "tags": [
-          "Orders"
-        ],
+        "description": "Creates a new order for authenticated customers. Supports delivery info, payment method, and loyalty points usage.",
+        "tags": ["Orders"],
         "security": [
           {
-            "Bearer": []
+            "BearerAuth": []
           }
         ],
         "requestBody": {
@@ -187,43 +774,44 @@
                 "required": [
                   "items",
                   "delivery_address",
-                  "delivery_distance",
-                  "delivery_charge"
+                  "delivery_distance"
                 ],
                 "properties": {
                   "items": {
                     "type": "array",
+                    "description": "Items being ordered",
                     "items": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "quantity": {
-                          "type": "number"
-                        },
-                        "price": {
-                          "type": "number"
-                        }
+                        "id": { "type": "number" },
+                        "price": { "type": "number" },
+                        "quantity": { "type": "number" }
                       }
-                    }
+                    },
+                    "example": [
+                      {
+                        "id": 11,
+                        "price": 34000,
+                        "quantity": 2
+                      }
+                    ]
                   },
                   "delivery_address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123, Nguyen Hue, Ben Nghe Ward, District 1, Building: Sunrise, Floor 1, Room 101"
                   },
                   "delivery_distance": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 5
                   },
                   "delivery_charge": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 20000
                   },
                   "payment_method": {
                     "type": "string",
-                    "enum": [
-                      "cash",
-                      "card",
-                      "momo"
-                    ]
+                    "enum": ["cash", "momo", "momo wallet"],
+                    "example": "momo wallet"
                   },
                   "loyalty_points_used": {
                     "type": "number",
@@ -232,6 +820,10 @@
                   "loyalty_points_earned": {
                     "type": "number",
                     "default": 0
+                  },
+                  "status": {
+                    "type": "string",
+                    "example": "Pending"
                   }
                 }
               }
@@ -240,13 +832,30 @@
         },
         "responses": {
           "201": {
-            "description": "Order created successfully"
+            "description": "Order created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "message": "Order created successfully",
+                  "orderId": 10
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Missing required fields"
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized - token missing or invalid",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "message": "No token provided"
+                }
+              }
+            }
           },
           "500": {
             "description": "Server error"
@@ -293,7 +902,7 @@
         ],
         "security": [
           {
-            "Bearer": []
+            "BearerAuth": []
           }
         ],
         "responses": {
@@ -311,7 +920,7 @@
     },
     "/api/orders": {
       "post": {
-        "summary": "Create a guest order (no authentication required)",
+        "summary": "Create a guest order",
         "description": "Create a new order for guest users. Includes auto-complete after 15 seconds.",
         "tags": [
           "Orders"
@@ -326,7 +935,7 @@
                   "items",
                   "delivery_address",
                   "delivery_distance",
-                  "delivery_charge",
+                  "guest_contact",
                   "guest_contact"
                 ],
                 "properties": {
@@ -395,7 +1004,7 @@
         ],
         "security": [
           {
-            "Bearer": []
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -446,7 +1055,7 @@
         ],
         "security": [
           {
-            "Bearer": []
+            "BearerAuth": []
           }
         ],
         "responses": {
@@ -471,7 +1080,7 @@
         ],
         "security": [
           {
-            "Bearer": []
+            "BearerAuth": []
           }
         ],
         "responses": {
@@ -480,114 +1089,6 @@
           },
           "401": {
             "description": "Unauthorized"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/api/payments/create": {
-      "post": {
-        "summary": "Create a payment",
-        "description": "Initiate payment for an order via MoMo or Vietcombank (staff only).",
-        "tags": [
-          "Payments"
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "orderId",
-                  "paymentMethod"
-                ],
-                "properties": {
-                  "orderId": {
-                    "type": "number"
-                  },
-                  "paymentMethod": {
-                    "type": "string",
-                    "enum": [
-                      "momo",
-                      "vietcombank"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Payment created, returns payment URL"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Order not found"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/api/payments/momo/callback": {
-      "post": {
-        "summary": "MoMo payment callback",
-        "description": "Webhook endpoint for MoMo to send payment status updates.",
-        "tags": [
-          "Payments"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Callback processed"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/api/payments/vietcombank/callback": {
-      "post": {
-        "summary": "Vietcombank payment callback",
-        "description": "Webhook endpoint for Vietcombank to send payment status updates.",
-        "tags": [
-          "Payments"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Callback processed"
           },
           "500": {
             "description": "Server error"
@@ -847,564 +1348,6 @@
           },
           "500": {
             "description": "Server error"
-          }
-        }
-      }
-    },
-    "/api/restock/{id}": {
-      "get": {
-        "summary": "Get restock order details",
-        "description": "Retrieve detailed information for a specific restock order (staff only).",
-        "tags": [
-          "Restock"
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Restock details retrieved successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Restock not found"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/api/restock": {
-      "get": {
-        "summary": "Get restock orders or daily import totals",
-        "description": "Retrieve all restock orders (summary) or daily import totals for a specific month/year (staff only).",
-        "tags": [
-          "Restock"
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "month",
-            "schema": {
-              "type": "number",
-              "minimum": 1,
-              "maximum": 12
-            }
-          },
-          {
-            "in": "query",
-            "name": "year",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Restock data retrieved successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      },
-      "post": {
-        "summary": "Create a new restock order",
-        "description": "Create a new restock order with items (staff only).",
-        "tags": [
-          "Restock"
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "supplier_id",
-                  "items"
-                ],
-                "properties": {
-                  "supplier_id": {
-                    "type": "number"
-                  },
-                  "restock_date": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "items": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "required": [
-                        "ingredient_id",
-                        "import_quantity",
-                        "import_price"
-                      ],
-                      "properties": {
-                        "ingredient_id": {
-                          "type": "number"
-                        },
-                        "import_quantity": {
-                          "type": "number"
-                        },
-                        "import_price": {
-                          "type": "number"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Restock order created successfully"
-          },
-          "400": {
-            "description": "Invalid restock data"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/api/sales/daily": {
-      "get": {
-        "summary": "Get daily sales data for a specific month and year",
-        "description": "Retrieves order count by day for a specified month and year from the sales table",
-        "tags": [
-          "Sales"
-        ],
-        "parameters": [
-          {
-            "name": "year",
-            "in": "query",
-            "required": true,
-            "description": "Year (e.g., 2024)",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "month",
-            "in": "query",
-            "required": true,
-            "description": "Month (1-12)",
-            "schema": {
-              "type": "number",
-              "minimum": 1,
-              "maximum": 12
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Daily sales data retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "day": {
-                            "type": "number",
-                            "description": "Day of month (1-31)"
-                          },
-                          "count": {
-                            "type": "number",
-                            "description": "Number of orders on that day"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid year or month parameter",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/schedules/{scheduleId}": {
-      "delete": {
-        "summary": "Remove staff from a shift",
-        "description": "Deletes a specific schedule entry (removes a staff member from a shift)",
-        "tags": [
-          "Schedules"
-        ],
-        "parameters": [
-          {
-            "name": "scheduleId",
-            "in": "path",
-            "required": true,
-            "description": "Schedule entry ID",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Staff removed from shift successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Schedule entry not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/api/schedules": {
-      "get": {
-        "summary": "Get shifts for a specific week",
-        "description": "Retrieves all shifts (staff assignments) for a week starting from a given date",
-        "tags": [
-          "Schedules"
-        ],
-        "parameters": [
-          {
-            "name": "startDate",
-            "in": "query",
-            "required": true,
-            "description": "Start date of the week (YYYY-MM-DD format)",
-            "schema": {
-              "type": "string",
-              "format": "date"
-            }
-          }
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Week shifts retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "schedule": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "date": {
-                            "type": "number",
-                            "description": "Day of month"
-                          },
-                          "shifts": {
-                            "type": "array",
-                            "items": {
-                              "type": "object"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Missing or invalid startDate parameter"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      },
-      "post": {
-        "summary": "Create shift block or assign staff to shift",
-        "description": "Creates a new shift block or assigns a staff member to an existing shift",
-        "tags": [
-          "Schedules"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "shift_date": {
-                    "type": "string",
-                    "format": "date",
-                    "description": "Date of the shift (YYYY-MM-DD)"
-                  },
-                  "shift": {
-                    "type": "string",
-                    "enum": [
-                      "Morning",
-                      "Evening"
-                    ],
-                    "description": "Shift type"
-                  },
-                  "staff_id": {
-                    "type": "number",
-                    "description": "Staff ID (optional - if omitted, creates empty shift block)"
-                  }
-                },
-                "required": [
-                  "shift_date",
-                  "shift"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Shift created or staff assigned successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "scheduleId": {
-                      "type": "number"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request parameters"
-          },
-          "409": {
-            "description": "Conflict - shift already exists or staff already assigned"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a shift block",
-        "description": "Deletes all staff assignments for a specific date and shift type",
-        "tags": [
-          "Schedules"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "shift_date": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "shift": {
-                    "type": "string",
-                    "enum": [
-                      "Morning",
-                      "Evening"
-                    ]
-                  }
-                },
-                "required": [
-                  "shift_date",
-                  "shift"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Shift deleted successfully"
-          },
-          "404": {
-            "description": "Shift not found"
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/api/suppliers": {
-      "get": {
-        "summary": "Get all suppliers",
-        "description": "Retrieves a list of all suppliers with their contact information",
-        "tags": [
-          "Suppliers"
-        ],
-        "responses": {
-          "200": {
-            "description": "Suppliers retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "supplier_id": {
-                            "type": "number"
-                          },
-                          "supplier_name": {
-                            "type": "string"
-                          },
-                          "phone": {
-                            "type": "string"
-                          },
-                          "address": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error"
           }
         }
       }

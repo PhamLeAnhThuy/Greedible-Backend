@@ -2,64 +2,6 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
 import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
-/**
- * @swagger
- * /api/orders/create:
- *   post:
- *     summary: Create an order for authenticated customer
- *     description: Create a new order for authenticated customers with loyalty points support.
- *     tags: [Orders]
- *     security:
- *       - Bearer: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - items
- *               - delivery_address
- *               - delivery_distance
- *               - delivery_charge
- *             properties:
- *               items:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: number
- *                     quantity:
- *                       type: number
- *                     price:
- *                       type: number
- *               delivery_address:
- *                 type: string
- *               delivery_distance:
- *                 type: number
- *               delivery_charge:
- *                 type: number
- *               payment_method:
- *                 type: string
- *                 enum: [cash, card, momo]
- *               loyalty_points_used:
- *                 type: number
- *                 default: 0
- *               loyalty_points_earned:
- *                 type: number
- *                 default: 0
- *     responses:
- *       201:
- *         description: Order created successfully
- *       401:
- *         description: Unauthorized
- *       400:
- *         description: Validation error
- *       500:
- *         description: Server error
- */
-
 export async function POST(request: Request) {
   try {
     const authResult = await authenticateCustomerToken(request);

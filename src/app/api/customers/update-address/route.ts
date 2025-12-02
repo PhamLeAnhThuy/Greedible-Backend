@@ -2,6 +2,118 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
 import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
+/**
+ * @swagger
+ * /api/customers/update-address:
+ *   put:
+ *     summary: Update customer address
+ *     description: Updates the address for the authenticated customer. Requires valid JWT token.
+ *     tags: [Customers]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - address
+ *             properties:
+ *               address:
+ *                 type: object
+ *                 required:
+ *                   - ward
+ *                   - district
+ *                   - street
+ *                   - houseNumber
+ *                 properties:
+ *                   ward:
+ *                     type: string
+ *                     example: "Ward 5"
+ *                   district:
+ *                     type: string
+ *                     example: "District 1"
+ *                   street:
+ *                     type: string
+ *                     example: "Nguyen Trai"
+ *                   houseNumber:
+ *                     type: string
+ *                     example: "123A"
+ *                   buildingName:
+ *                     type: string
+ *                     nullable: true
+ *                     example: "Sunrise Building"
+ *                   block:
+ *                     type: string
+ *                     nullable: true
+ *                     example: "Block B"
+ *                   floor:
+ *                     type: string
+ *                     nullable: true
+ *                     example: "10"
+ *                   roomNumber:
+ *                     type: string
+ *                     nullable: true
+ *                     example: "1005"
+ *     responses:
+ *       200:
+ *         description: Address updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Address updated successfully"
+ *                 address:
+ *                   type: object
+ *                   description: Updated address object
+ *       400:
+ *         description: Missing required address fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Required address fields are missing"
+ *       401:
+ *         description: Unauthorized - No token provided or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "No token provided"
+ *       500:
+ *         description: Server error during address update
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Error updating address"
+ */
+
 export async function PUT(request: Request) {
   try {
     const authResult = await authenticateCustomerToken(request);
