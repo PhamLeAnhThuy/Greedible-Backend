@@ -7,17 +7,17 @@ import { authenticateToken } from "@/src/lib/auth/middleware";
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
-
     // 1. Find staff by email
     const { data: staff, error } = await supabase
       .from("staff")
       .select("*")
       .eq("staff_email", email)
       .single();
-
+    
     if (!staff) {
       return NextResponse.json(
-        { message: "Invalid email or password" },
+        { message: "Invalid email or password " },
+        
         { status: 401 }
       );
     }
@@ -26,7 +26,8 @@ export async function POST(request: Request) {
     const validPassword = await bcrypt.compare(password, staff.password);
     if (!validPassword) {
       return NextResponse.json(
-        { message: "Invalid email or password" },
+        { message: "Invalid email or password"
+         },
         { status: 401 }
       );
     }

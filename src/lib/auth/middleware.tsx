@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { createServerClient } from '../supabase/server';
+import { supabase } from '../supabase/client';
 
 // JWT Payload types
 interface StaffJwtPayload extends JwtPayload {
@@ -35,7 +35,6 @@ export async function authenticateToken(request: Request) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as StaffJwtPayload;
-    const supabase = await createServerClient(); 
 
     // Fetch staff user details from Supabase
     const { data: staff, error: dbError } = await supabase
@@ -73,7 +72,6 @@ export async function authenticateToken(request: Request) {
  */
 export async function authenticateCustomer(email: string, password: string) {
   try {
-    const supabase = await createServerClient(); 
 
     // Get customer from database
     const { data: customers, error: dbError } = await supabase
@@ -146,7 +144,7 @@ export async function authenticateCustomer(email: string, password: string) {
  */
 export async function authenticateStaffLogin(email: string, password: string) {
   try {
-    const supabase = await createServerClient(); 
+
 
     // Get staff from database
     const { data: staff, error: dbError } = await supabase
@@ -245,7 +243,7 @@ export async function authenticateCustomerToken(request: Request) {
       };
     }
 
-    const supabase = await createServerClient(); 
+
 
     // Fetch customer details from Supabase
     const { data: customers, error: dbError } = await supabase

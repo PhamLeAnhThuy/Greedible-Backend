@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { authenticateToken } from "@/src/lib/auth/middleware";
-import { createServerClient } from "@/src/lib/supabase/server";
+import { supabase } from "@/src/lib/supabase/client";
 
 export async function GET(request: Request) {
   const auth = await authenticateToken(request);
 
   if (auth.error) return NextResponse.json(auth.error, { status: auth.error.status });
-
-  const supabase = await createServerClient();
 
   const { searchParams } = new URL(request.url);
   const month = searchParams.get("month");
