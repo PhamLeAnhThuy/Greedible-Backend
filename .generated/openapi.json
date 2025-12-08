@@ -191,6 +191,17 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "success": true,
+                  "message": "Customer registered successfully",
+                  "user": {
+                    "customer_id": 12,
+                    "customer_name": "John Doe",
+                    "email": "john@example.com",
+                    "phone": "0987654321",
+                    "loyalty_point": 0
+                  }
                 }
               }
             }
@@ -211,6 +222,43 @@
                       "example": "Email already registered"
                     }
                   }
+                },
+                "examples": {
+                  "emailExists": {
+                    "summary": "Email already registered",
+                    "value": {
+                      "success": false,
+                      "message": "Email already registered"
+                    }
+                  },
+                  "phoneExists": {
+                    "summary": "Phone already registered",
+                    "value": {
+                      "success": false,
+                      "message": "Phone already registered"
+                    }
+                  },
+                  "invalidEmail": {
+                    "summary": "Invalid email format",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid email format."
+                    }
+                  },
+                  "invalidPhone": {
+                    "summary": "Invalid phone format",
+                    "value": {
+                      "success": false,
+                      "message": "Phone must be a number with exactly 10 digits."
+                    }
+                  },
+                  "missingFields": {
+                    "summary": "Missing required fields",
+                    "value": {
+                      "success": false,
+                      "message": "All fields are required."
+                    }
+                  }
                 }
               }
             }
@@ -229,8 +277,17 @@
                     "message": {
                       "type": "string",
                       "example": "Error registering customer"
+                    },
+                    "error": {
+                      "type": "string",
+                      "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error registering customer",
+                  "error": "Database connection failed"
                 }
               }
             }
@@ -299,6 +356,19 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "success": true,
+                  "message": "Sign in successful",
+                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTIsImVtYWlsIjoiam9obkBleGFtcGxlLmNvbSIsInR5cGUiOiJjdXN0b21lciIsImlhdCI6MTcwNTI4MDAwMCwiZXhwIjoxNzA1MzY2NDAwfQ.example_signature",
+                  "user": {
+                    "customer_id": 12,
+                    "customer_name": "John Doe",
+                    "email": "john@example.com",
+                    "phone": "0987654321",
+                    "address": "{\"ward\":\"Ward 5\",\"district\":\"District 1\",\"street\":\"Nguyen Trai\",\"houseNumber\":\"123A\"}",
+                    "loyalty_point": 50
+                  }
                 }
               }
             }
@@ -319,6 +389,10 @@
                       "example": "Email and password are required."
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Email and password are required."
                 }
               }
             }
@@ -339,6 +413,10 @@
                       "example": "Invalid email or password."
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Invalid email or password."
                 }
               }
             }
@@ -357,8 +435,17 @@
                     "message": {
                       "type": "string",
                       "example": "Error signing in customer"
+                    },
+                    "error": {
+                      "type": "string",
+                      "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error signing in customer",
+                  "error": "Database query failed"
                 }
               }
             }
@@ -429,6 +516,26 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "success": true,
+                  "user": {
+                    "id": 12,
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "email": "john@example.com",
+                    "contactMobile": "0987654321",
+                    "loyaltyPoints": 50,
+                    "address": {
+                      "ward": "Ward 5",
+                      "district": "District 1",
+                      "street": "Nguyen Trai",
+                      "houseNumber": "123A",
+                      "buildingName": "Sunrise Building",
+                      "floor": "10",
+                      "roomNumber": "1005"
+                    }
+                  }
                 }
               }
             }
@@ -447,6 +554,22 @@
                     "message": {
                       "type": "string",
                       "example": "No token provided"
+                    }
+                  }
+                },
+                "examples": {
+                  "noToken": {
+                    "summary": "No token provided",
+                    "value": {
+                      "success": false,
+                      "message": "No token provided"
+                    }
+                  },
+                  "invalidToken": {
+                    "summary": "Invalid token",
+                    "value": {
+                      "success": false,
+                      "message": "Invalid token"
                     }
                   }
                 }
@@ -469,6 +592,10 @@
                       "example": "User not found"
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "User not found"
                 }
               }
             }
@@ -489,6 +616,10 @@
                       "example": "Error fetching user profile"
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error fetching user profile"
                 }
               }
             }
@@ -582,6 +713,20 @@
                       "description": "Updated address object"
                     }
                   }
+                },
+                "example": {
+                  "success": true,
+                  "message": "Address updated successfully",
+                  "address": {
+                    "ward": "Ward 5",
+                    "district": "District 1",
+                    "street": "Nguyen Trai",
+                    "houseNumber": "123A",
+                    "buildingName": "Sunrise Building",
+                    "block": "Block B",
+                    "floor": "10",
+                    "roomNumber": "1005"
+                  }
                 }
               }
             }
@@ -602,6 +747,10 @@
                       "example": "Required address fields are missing"
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Required address fields are missing"
                 }
               }
             }
@@ -622,6 +771,10 @@
                       "example": "No token provided"
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "No token provided"
                 }
               }
             }
@@ -640,8 +793,17 @@
                     "message": {
                       "type": "string",
                       "example": "Error updating address"
+                    },
+                    "error": {
+                      "type": "string",
+                      "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error updating address",
+                  "error": "Database update failed"
                 }
               }
             }
@@ -731,6 +893,43 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "success": true,
+                  "orders": [
+                    {
+                      "sale_id": 10,
+                      "sale_time": "2024-01-15T10:30:00Z",
+                      "status": "Completed",
+                      "delivery_address": "123, Nguyen Hue, Ben Nghe Ward, District 1",
+                      "total_amount": 100000,
+                      "items": [
+                        {
+                          "recipe_id": 12,
+                          "recipe_name": "Grilled Salmon",
+                          "quantity": 2,
+                          "price": 50000,
+                          "image_url": "https://example.com/salmon.jpg"
+                        }
+                      ]
+                    },
+                    {
+                      "sale_id": 9,
+                      "sale_time": "2024-01-14T15:20:00Z",
+                      "status": "Completed",
+                      "delivery_address": "123, Nguyen Hue, Ben Nghe Ward, District 1",
+                      "total_amount": 75000,
+                      "items": [
+                        {
+                          "recipe_id": 8,
+                          "recipe_name": "Chicken Teriyaki",
+                          "quantity": 1,
+                          "price": 75000,
+                          "image_url": "https://example.com/chicken.jpg"
+                        }
+                      ]
+                    }
+                  ]
                 }
               }
             }
@@ -751,6 +950,10 @@
                       "example": "No token provided"
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "No token provided"
                 }
               }
             }
@@ -775,6 +978,11 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error fetching order history",
+                  "error": "Database connection failed"
                 }
               }
             }
@@ -868,6 +1076,12 @@
                     "orderId": { "type": "integer" },
                     "customerId": { "type": "integer" }
                   }
+                },
+                "example": {
+                  "success": true,
+                  "message": "Guest order created successfully",
+                  "orderId": 15,
+                  "customerId": 25
                 }
               }
             }
@@ -882,6 +1096,10 @@
                     "success": { "type": "boolean" },
                     "message": { "type": "string" }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Missing required fields: items, delivery_address, delivery_distance"
                 }
               }
             }
@@ -897,6 +1115,11 @@
                     "message": { "type": "string" },
                     "error": { "type": "string", "nullable": true }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error creating guest order",
+                  "error": "Database insert failed"
                 }
               }
             }
@@ -1004,6 +1227,29 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "success": true,
+                  "order": {
+                    "sale_id": 10,
+                    "sale_time": "2024-01-15T10:30:00Z",
+                    "status": "Completed",
+                    "delivery_address": "123, Nguyen Hue, Ben Nghe Ward, District 1",
+                    "delivery_distance": 5,
+                    "delivery_charge": 20000,
+                    "total_amount": 100000,
+                    "payment_method": "cash",
+                    "customer_id": 12,
+                    "items": [
+                      {
+                        "recipe_id": 12,
+                        "recipe_name": "Grilled Salmon",
+                        "quantity": 2,
+                        "price": 50000,
+                        "image_url": "https://example.com/salmon.jpg"
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -1024,6 +1270,10 @@
                       "example": "Order not found"
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Order not found"
                 }
               }
             }
@@ -1048,6 +1298,11 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error fetching order details",
+                  "error": "Database query failed"
                 }
               }
             }
@@ -1147,6 +1402,11 @@
                       "example": 10
                     }
                   }
+                },
+                "example": {
+                  "success": true,
+                  "message": "Order created successfully",
+                  "orderId": 10
                 }
               }
             }
@@ -1167,6 +1427,10 @@
                       "example": "Missing required fields"
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Missing required fields"
                 }
               }
             }
@@ -1187,6 +1451,10 @@
                       "example": "No token provided"
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "No token provided"
                 }
               }
             }
@@ -1211,6 +1479,11 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error creating order",
+                  "error": "Database transaction failed"
                 }
               }
             }
@@ -1276,6 +1549,27 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "success": true,
+                  "favoriteMeals": [
+                    {
+                      "recipe_id": 12,
+                      "recipe_name": "Grilled Salmon",
+                      "price": 50000,
+                      "image_url": "https://example.com/salmon.jpg",
+                      "total_ordered": 15,
+                      "times_ordered": 5
+                    },
+                    {
+                      "recipe_id": 8,
+                      "recipe_name": "Chicken Teriyaki",
+                      "price": 75000,
+                      "image_url": "https://example.com/chicken.jpg",
+                      "total_ordered": 8,
+                      "times_ordered": 3
+                    }
+                  ]
                 }
               }
             }
@@ -1296,6 +1590,10 @@
                       "example": "No token provided"
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "No token provided"
                 }
               }
             }
@@ -1320,6 +1618,11 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error fetching favorite meals",
+                  "error": "Database query failed"
                 }
               }
             }
@@ -1414,6 +1717,35 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "recipe_id": 12,
+                  "recipe_name": "Grilled Salmon",
+                  "category": "Main Course",
+                  "calories": 450,
+                  "protein": 35,
+                  "fat": 20,
+                  "carbohydrate": 15,
+                  "fiber": 5,
+                  "price": 50000,
+                  "image_url": "https://example.com/salmon.jpg",
+                  "ingredients": [
+                    {
+                      "ingredient_id": 5,
+                      "ingredient": "Salmon Fillet",
+                      "amount": 200
+                    },
+                    {
+                      "ingredient_id": 3,
+                      "ingredient": "Olive Oil",
+                      "amount": 15
+                    },
+                    {
+                      "ingredient_id": 8,
+                      "ingredient": "Lemon",
+                      "amount": 30
+                    }
+                  ]
                 }
               }
             }
@@ -1430,6 +1762,9 @@
                       "example": "Recipe not found"
                     }
                   }
+                },
+                "example": {
+                  "error": "Recipe not found"
                 }
               }
             }
@@ -1450,6 +1785,10 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "error": "Internal server error",
+                  "details": "Database connection timeout"
                 }
               }
             }
@@ -1536,6 +1875,9 @@
                       "example": "Recipe updated successfully"
                     }
                   }
+                },
+                "example": {
+                  "message": "Recipe updated successfully"
                 }
               }
             }
@@ -1552,6 +1894,9 @@
                       "example": "Recipe not found"
                     }
                   }
+                },
+                "example": {
+                  "error": "Recipe not found"
                 }
               }
             }
@@ -1572,6 +1917,10 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "error": "Internal server error",
+                  "details": "Database update failed"
                 }
               }
             }
@@ -1605,6 +1954,9 @@
                       "example": "Recipe deleted successfully"
                     }
                   }
+                },
+                "example": {
+                  "message": "Recipe deleted successfully"
                 }
               }
             }
@@ -1621,6 +1973,9 @@
                       "example": "Recipe not found"
                     }
                   }
+                },
+                "example": {
+                  "error": "Recipe not found"
                 }
               }
             }
@@ -1641,6 +1996,10 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "error": "Internal server error",
+                  "details": "Database delete operation failed"
                 }
               }
             }
@@ -1748,7 +2107,63 @@
                       }
                     }
                   }
-                }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Main Course",
+                    "items": [
+                      {
+                        "id": 12,
+                        "name": "Grilled Salmon",
+                        "price": 50000,
+                        "rating": 5,
+                        "image": "https://example.com/salmon.jpg",
+                        "calories": 450,
+                        "protein": 35,
+                        "fat": 20,
+                        "fiber": 5,
+                        "carb": 15,
+                        "is_available": true,
+                        "category": "Main Course"
+                      },
+                      {
+                        "id": 8,
+                        "name": "Chicken Teriyaki",
+                        "price": 75000,
+                        "rating": 5,
+                        "image": "https://example.com/chicken.jpg",
+                        "calories": 380,
+                        "protein": 30,
+                        "fat": 15,
+                        "fiber": 3,
+                        "carb": 25,
+                        "is_available": true,
+                        "category": "Main Course"
+                      }
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "name": "Appetizer",
+                    "items": [
+                      {
+                        "id": 5,
+                        "name": "Spring Rolls",
+                        "price": 30000,
+                        "rating": 5,
+                        "image": "https://example.com/springrolls.jpg",
+                        "calories": 200,
+                        "protein": 8,
+                        "fat": 10,
+                        "fiber": 2,
+                        "carb": 20,
+                        "is_available": true,
+                        "category": "Appetizer"
+                      }
+                    ]
+                  }
+                ]
               }
             }
           },
@@ -1768,6 +2183,10 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "error": "Internal server error",
+                  "details": "Database query failed"
                 }
               }
             }
@@ -1849,6 +2268,11 @@
                       "example": "https://example.com/image.jpg"
                     }
                   }
+                },
+                "example": {
+                  "message": "Recipe added successfully",
+                  "recipeId": 12,
+                  "image_url": "https://supabase.storage.com/recipe-images/recipes/RCP-012.png"
                 }
               }
             }
@@ -1863,6 +2287,20 @@
                     "error": {
                       "type": "string",
                       "example": "Recipe name is required"
+                    }
+                  }
+                },
+                "examples": {
+                  "missingName": {
+                    "summary": "Recipe name is required",
+                    "value": {
+                      "error": "Recipe name is required"
+                    }
+                  },
+                  "invalidIngredients": {
+                    "summary": "Invalid ingredients format",
+                    "value": {
+                      "error": "Invalid ingredients data format"
                     }
                   }
                 }
@@ -1885,6 +2323,10 @@
                       "nullable": true
                     }
                   }
+                },
+                "example": {
+                  "error": "Internal server error",
+                  "details": "Database insert failed"
                 }
               }
             }
