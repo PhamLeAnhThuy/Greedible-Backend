@@ -33,13 +33,51 @@ export default function SwaggerPage() {
         return;
       }
 
-      Bundle({
+      const ui = Bundle({
         url: '/api/swagger',
         dom_id: '#swagger-ui',
         presets: [Bundle.presets.apis, Preset],
         layout: 'BaseLayout',
         deepLinking: true,
-        onComplete: () => setIsLoading(false)
+        displayRequestDuration: true,
+        tryItOutEnabled: true,
+        defaultModelsExpandDepth: 1,
+        defaultModelExpandDepth: 1,
+        docExpansion: 'list',
+        filter: true,
+        showExtensions: true,
+        showCommonExtensions: true,
+        persistAuthorization: true,
+        onComplete: () => {
+          setIsLoading(false);
+          // Force Swagger UI to render examples
+          setTimeout(() => {
+            // Expand all response sections
+            const responseHeaders = document.querySelectorAll('.response-header');
+            responseHeaders.forEach((header: any) => {
+              const clickable = header.querySelector('span');
+              if (clickable && clickable.click) {
+                clickable.click();
+              }
+            });
+            
+            // Expand example sections
+            const exampleTabs = document.querySelectorAll('.examples-select');
+            exampleTabs.forEach((tab: any) => {
+              if (tab && tab.click) {
+                tab.click();
+              }
+            });
+            
+            // Also try clicking on response content type buttons to show examples
+            const contentTypeButtons = document.querySelectorAll('.response-content-type');
+            contentTypeButtons.forEach((btn: any) => {
+              if (btn && btn.click) {
+                btn.click();
+              }
+            });
+          }, 2000);
+        }
       });
     };
 

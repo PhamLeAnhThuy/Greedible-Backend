@@ -7,7 +7,7 @@
     "build": "npm run swagger:gen && next build",
     "start": "next start",
     "lint": "eslint",
-    "swagger:gen": "node ./scripts/swagger/generate.js"
+    "swagger:gen": "node ./scripts/swagger/generate.js && node ./scripts/swagger/add-examples.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.81.1",

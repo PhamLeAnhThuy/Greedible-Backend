@@ -2,24 +2,6 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@/src/lib/supabase/server';
 import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
-/**
- * @swagger
- * /api/orders/user/orders:
- *   get:
- *     summary: Get user's order history
- *     description: Retrieve all orders for the authenticated customer.
- *     tags: [Orders]
- *     security:
- *       - Bearer: []
- *     responses:
- *       200:
- *         description: User's order history
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
- */
-
 export async function GET(request: Request) {
   try {
     const authResult = await authenticateCustomerToken(request);
