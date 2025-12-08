@@ -15,31 +15,40 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       );
     }
 
-    console.log(`Fetching restock details for ingredient ID: ${ingredientId}`);
+    console.log(`Fetching restock details${ingredientId ? ` for ingredient ID: ${ingredientId}` : ' for all ingredients'}`);
 
-
-
-    const { data: restockDetails, error } = await supabase
+    // Build the query
+    let query = supabase
       .from('restock_detail')
       .select(`
         restock_id,
+        ingredient_id,
         import_quantity,
         import_price,
         restock(
           restock_date
         ),
         ingredient(
+          name,
           unit
         )
       `)
-      .eq('ingredient_id', ingredientId)
-      .order('restock.restock_date', { ascending: false });
+      .order('restock_id', { ascending: false });
+
+    // Add ingredient filter only if ingredientId is provided
+    if (ingredientId) {
+      query = query.eq('ingredient_id', ingredientId);
+    }
+
+    const { data: restockDetails, error } = await query;
 
     if (error) throw error;
 
     const formattedRestocks =
       restockDetails?.map((rd: any) => ({
         restock_id: rd.restock_id,
+        ingredient_id: rd.ingredient_id,
+        ingredient_name: rd.ingredient.name,
         restock_date: rd.restock.restock_date,
         import_quantity: rd.import_quantity,
         import_price: rd.import_price,
