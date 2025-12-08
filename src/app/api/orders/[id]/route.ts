@@ -1,26 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { supabase } from '@/src/lib/supabase/client';
-/**
- * @swagger
- * /api/orders/{orderId}:
- *   get:
- *     summary: Get order details
- *     description: Retrieve detailed information for a specific order including items.
- *     tags: [Orders]
- *     parameters:
- *       - in: path
- *         name: orderId
- *         required: true
- *         schema:
- *           type: number
- *     responses:
- *       200:
- *         description: Order details
- *       404:
- *         description: Order not found
- *       500:
- *         description: Server error
- */
 
 export async function GET(
   request: NextRequest,
