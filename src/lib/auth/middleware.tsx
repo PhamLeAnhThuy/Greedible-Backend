@@ -24,13 +24,33 @@ interface CustomerJwtPayload extends JwtPayload {
  */
 export async function authenticateToken(request: Request) {
   const authHeader = request.headers.get('authorization');
-  const token = authHeader?.split(' ')[1];
-
-  if (!token) {
+  
+  if (!authHeader) {
     return { 
       error: { 
         status: 401, 
-        message: 'No token provided' 
+        message: 'No token provided. Please include Authorization header with Bearer token.' 
+      } 
+    };
+  }
+
+  // Check if header starts with "Bearer "
+  if (!authHeader.startsWith('Bearer ')) {
+    return { 
+      error: { 
+        status: 401, 
+        message: 'Invalid authorization format. Expected "Bearer <token>"' 
+      } 
+    };
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  if (!token || token.trim() === '') {
+    return { 
+      error: { 
+        status: 401, 
+        message: 'No token provided. Token is missing or empty.' 
       } 
     };
   }
@@ -247,13 +267,33 @@ export async function authenticateStaffLogin(email: string, password: string) {
  */
 export async function authenticateCustomerToken(request: Request) {
   const authHeader = request.headers.get('authorization');
-  const token = authHeader?.split(' ')[1];
-
-  if (!token) {
+  
+  if (!authHeader) {
     return { 
       error: { 
         status: 401, 
-        message: 'No token provided' 
+        message: 'No token provided. Please include Authorization header with Bearer token.' 
+      } 
+    };
+  }
+
+  // Check if header starts with "Bearer "
+  if (!authHeader.startsWith('Bearer ')) {
+    return { 
+      error: { 
+        status: 401, 
+        message: 'Invalid authorization format. Expected "Bearer <token>"' 
+      } 
+    };
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  if (!token || token.trim() === '') {
+    return { 
+      error: { 
+        status: 401, 
+        message: 'No token provided. Token is missing or empty.' 
       } 
     };
   }

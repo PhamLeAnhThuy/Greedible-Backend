@@ -101,7 +101,19 @@ export async function POST(request: Request) {
   try {
     const authResult = await authenticateToken(request);
     if (authResult.error) {
-      return NextResponse.json({ success: false, message: authResult.error.message }, { status: authResult.error.status });
+      console.error('Restock POST auth error:', {
+        message: authResult.error.message,
+        status: authResult.error.status,
+        hasAuthHeader: request.headers.has('authorization'),
+        authHeader: request.headers.get('authorization') ? 'present' : 'missing'
+      });
+      return NextResponse.json({ 
+        success: false, 
+        message: authResult.error.message,
+        error: authResult.error.message === 'No token provided' 
+          ? 'Please ensure you are logged in as staff and the Authorization header is included in your request (Bearer token)'
+          : authResult.error.message
+      }, { status: authResult.error.status });
     }
 
     const body = await request.json();
