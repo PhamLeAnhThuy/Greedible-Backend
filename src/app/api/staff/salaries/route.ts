@@ -18,7 +18,7 @@ async function authenticateStaffRequest(req: NextRequest) {
     .eq('auth_token', token)
     .single();
   
-  if (error || !staff) {
+  if (error) {
     return null;
   }
   
