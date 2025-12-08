@@ -26,8 +26,13 @@ export async function GET(
       );
     }
 
+    // Calculate the last day of the month
+    // monthNum is 1-indexed (1-12), JavaScript Date uses 0-indexed months (0-11)
+    // To get last day of current month, use day 0 of next month
+    const lastDay = new Date(yearNum, monthNum, 0).getDate();
+    
     const startDate = `${year}-${month.padStart(2, "0")}-01`;
-    const endDate = `${year}-${month.padStart(2, "0")}-31`;
+    const endDate = `${year}-${month.padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 
     const { data: sales, error } = await supabase
       .from("sale")
