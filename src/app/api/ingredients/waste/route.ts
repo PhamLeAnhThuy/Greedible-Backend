@@ -10,34 +10,36 @@ export async function GET(request: Request) {
     }
 
     const { data: wasteData, error } = await supabase
-      .from('waste_details')
+      .from('waste')
       .select(`
         waste_id,
-        quantity,
-        reason,
-        waste(
-          waste_date
-        ),
-        ingredient(
-          ingredient_name,
-          unit
+        waste_date,
+        waste_detail(
+          quantity,
+          reason,
+          ingredient(
+            ingredient_name,
+            unit
+          )
         )
       `)
-      .order('waste_id', { ascending: false });
+      .order('waste_date', { ascending: false });
 
     if (error) {
       throw error;
     }
 
-    // Format the data structure
-    const formattedWaste = wasteData?.map((wd: any) => ({
-      waste_id: wd.waste_id,
-      waste_date: wd.waste?.waste_date,
-      ingredient_name: wd.ingredient?.ingredient_name,
-      wasted_quantity: wd.quantity,
-      unit: wd.ingredient?.unit,
-      reason: wd.reason
-    })) || [];
+    // Flatten the structure and include reason
+    const formattedWaste = wasteData?.flatMap((w: any) =>
+      w.waste_detail.map((wd: any) => ({
+        waste_id: w.waste_id,
+        waste_date: w.waste_date,
+        ingredient_name: wd.ingredient.ingredient_name,
+        wasted_quantity: wd.quantity,
+        unit: wd.ingredient.unit,
+        reason: wd.reason
+      }))
+    ) || [];
 
     console.log('Waste details fetched.', formattedWaste.length);
     return NextResponse.json({ success: true, waste: formattedWaste });
