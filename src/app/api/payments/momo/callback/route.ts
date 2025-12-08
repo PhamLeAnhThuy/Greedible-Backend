@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { paymentService } from '@/src/lib/services/paymentService';
 
 export async function POST(request: Request) {
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    const supabase = await createServerClient();
+
 
     // Update order status based on payment result
     const paymentStatus = data.resultCode === '0' ? 'Paid' : 'Failed';

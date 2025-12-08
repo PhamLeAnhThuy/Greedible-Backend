@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 
 /**
  * @swagger
@@ -95,7 +95,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   try {
     const { id: recipeId } = await params;
 
-    const supabase = await createServerClient();
+
 
     // Get recipe details
     const { data: recipe, error: recipeError } = await supabase
@@ -168,7 +168,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       ingredients 
     } = body;
 
-    const supabase = await createServerClient();
+
 
     // Update recipe
     const { error: updateError } = await supabase
@@ -226,7 +226,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   try {
     const { id: recipeId } = await params;
 
-    const supabase = await createServerClient();
+
 
     // Get recipe to retrieve image URL
     const { data: recipe, error: getError } = await supabase

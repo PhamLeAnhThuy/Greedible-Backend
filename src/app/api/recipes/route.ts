@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 
 /**
  * @swagger
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
     const calories = searchParams.get('calories');
     const protein = searchParams.get('protein');
 
-    const supabase = await createServerClient();
+
 
     let query = supabase
       .from('recipe')
@@ -210,7 +210,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Recipe name is required' }, { status: 400 });
     }
 
-    const supabase = await createServerClient();
+
 
     let imageUrl: string | null = placeholderImageUrl || null;
 

@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { authenticateToken } from '@/src/lib/auth/middleware';
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
     console.log(`Fetching restock details for ingredient ID: ${ingredientId}`);
 
-    const supabase = await createServerClient();
+
 
     const { data: restockDetails, error } = await supabase
       .from('restock_detail')

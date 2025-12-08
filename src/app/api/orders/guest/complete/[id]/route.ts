@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
 /**
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    const supabase = await createServerClient();
+
 
     // Calculate total amount
     const totalAmount = items.reduce((total: number, item: any) => total + (item.price * item.quantity), 0);

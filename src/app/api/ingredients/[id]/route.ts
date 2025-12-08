@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 
 export async function PUT(
   request: NextRequest,
@@ -18,7 +18,7 @@ export async function PUT(
       );
     }
 
-    const supabase = await createServerClient();
+
 
     const { error: updateError, data: updatedData } = await supabase
       .from('ingredient')
@@ -67,7 +67,7 @@ export async function DELETE(
   try {
     const { id } = await context.params;
 
-    const supabase = await createServerClient();
+
 
     // avoid FK issues
     await supabase.from('supplier_product').delete().eq('ingredient_id', id);

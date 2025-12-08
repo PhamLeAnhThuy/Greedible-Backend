@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import jwt from 'jsonwebtoken';
 
 /**
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Email and password are required.' }, { status: 400 });
     }
 
-    const supabase = await createServerClient();
+
 
     const { data: users, error: dbError } = await supabase
       .from('customer')

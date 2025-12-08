@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { authenticateToken } from '@/src/lib/auth/middleware';
 import { handleCorsOptions } from '@/src/lib/utils/cors';
 
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    const supabase = await createServerClient();
+
 
     // Check if guest customer exists
     const { data: existingGuest } = await supabase
@@ -143,7 +143,7 @@ export async function GET(request: Request) {
     if (!['time', 'total_price'].includes(sortBy)) sortBy = 'time';
     if (!['asc', 'desc'].includes(sortOrder.toLowerCase())) sortOrder = 'desc';
 
-    const supabase = await createServerClient();
+
 
     const orderBy = sortBy === 'total_price' ? 'total_amount' : 'sale_time';
 
