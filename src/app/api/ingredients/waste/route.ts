@@ -9,37 +9,35 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, message: authResult.error.message }, { status: authResult.error.status });
     }
 
-
-
     const { data: wasteData, error } = await supabase
-      .from('waste')
+      .from('waste_details')
       .select(`
         waste_id,
-        waste_date,
-        waste_detail(
-          quantity,
-          ingredient(
-            ingredient_name,
-            unit
-          )
+        quantity,
+        reason,
+        waste(
+          waste_date
+        ),
+        ingredient(
+          ingredient_name,
+          unit
         )
       `)
-      .order('waste_date', { ascending: false });
+      .order('waste_id', { ascending: false });
 
     if (error) {
       throw error;
     }
 
-    // Flatten the structure to match the original query
-    const formattedWaste = wasteData?.flatMap((w: any) =>
-      w.waste_detail.map((wd: any) => ({
-        waste_id: w.waste_id,
-        waste_date: w.waste_date,
-        ingredient_name: wd.ingredient.ingredient_name,
-        wasted_quantity: wd.quantity,
-        unit: wd.ingredient.unit
-      }))
-    ) || [];
+    // Format the data structure
+    const formattedWaste = wasteData?.map((wd: any) => ({
+      waste_id: wd.waste_id,
+      waste_date: wd.waste?.waste_date,
+      ingredient_name: wd.ingredient?.ingredient_name,
+      wasted_quantity: wd.quantity,
+      unit: wd.ingredient?.unit,
+      reason: wd.reason
+    })) || [];
 
     console.log('Waste details fetched.', formattedWaste.length);
     return NextResponse.json({ success: true, waste: formattedWaste });
