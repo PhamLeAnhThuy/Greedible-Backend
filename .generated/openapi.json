@@ -662,13 +662,106 @@
         ],
         "responses": {
           "200": {
-            "description": "User's order history"
+            "description": "User's order history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "orders": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "sale_id": {
+                            "type": "integer",
+                            "example": 10
+                          },
+                          "sale_time": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2024-01-15T10:30:00Z"
+                          },
+                          "status": {
+                            "type": "string",
+                            "example": "Completed"
+                          },
+                          "delivery_address": {
+                            "type": "string",
+                            "example": "123, Nguyen Hue, Ben Nghe Ward, District 1"
+                          },
+                          "total_amount": {
+                            "type": "number",
+                            "example": 120000
+                          },
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "recipe_id": {
+                                  "type": "integer",
+                                  "example": 11
+                                },
+                                "recipe_name": {
+                                  "type": "string",
+                                  "example": "Grilled Salmon"
+                                },
+                                "quantity": {
+                                  "type": "integer",
+                                  "example": 2
+                                },
+                                "price": {
+                                  "type": "number",
+                                  "example": 34000
+                                },
+                                "image_url": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "example": "https://example.com/image.jpg"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "message": "No token provided"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error fetching order history"
+                }
+              }
+            }
           }
         }
       }
@@ -688,7 +781,7 @@
                   "items",
                   "delivery_address",
                   "delivery_distance",
-                  "guest_contact"
+                  "phone_number"
                 ],
                 "properties": {
                   "items": {
@@ -711,7 +804,7 @@
                         "quantity": {
                           "type": "integer",
                           "description": "Quantity",
-                          "exmaple": 3
+                          "example": 3
                         }
                       }
                     }
@@ -812,13 +905,120 @@
         ],
         "responses": {
           "200": {
-            "description": "Order details"
+            "description": "Order details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "order": {
+                      "type": "object",
+                      "properties": {
+                        "sale_id": {
+                          "type": "integer",
+                          "example": 10
+                        },
+                        "sale_time": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2024-01-15T10:30:00Z"
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "Completed"
+                        },
+                        "delivery_address": {
+                          "type": "string",
+                          "example": "123, Nguyen Hue, Ben Nghe Ward, District 1"
+                        },
+                        "delivery_distance": {
+                          "type": "number",
+                          "example": 5
+                        },
+                        "delivery_charge": {
+                          "type": "number",
+                          "nullable": true,
+                          "example": 20000
+                        },
+                        "total_amount": {
+                          "type": "number",
+                          "example": 120000
+                        },
+                        "payment_method": {
+                          "type": "string",
+                          "example": "cash"
+                        },
+                        "customer_id": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "recipe_id": {
+                                "type": "integer",
+                                "example": 11
+                              },
+                              "recipe_name": {
+                                "type": "string",
+                                "example": "Grilled Salmon"
+                              },
+                              "quantity": {
+                                "type": "integer",
+                                "example": 2
+                              },
+                              "price": {
+                                "type": "number",
+                                "example": 34000
+                              },
+                              "image_url": {
+                                "type": "string",
+                                "nullable": true,
+                                "example": "https://example.com/image.jpg"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "Order not found"
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Order not found"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error fetching order details"
+                }
+              }
+            }
           }
         }
       }
@@ -927,34 +1127,6 @@
         }
       }
     },
-    "/api/orders/guest/orders/{phone}": {
-      "get": {
-        "summary": "Get guest order history by phone",
-        "description": "Retrieve all orders for a guest customer using their phone number.",
-        "tags": ["Orders"],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "phone",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Guest's order history"
-          },
-          "404": {
-            "description": "No orders found"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
     "/api/orders/user/favorite-meals": {
       "get": {
         "summary": "Get user's favorite meals",
@@ -967,13 +1139,83 @@
         ],
         "responses": {
           "200": {
-            "description": "User's favorite meals sorted by order frequency"
+            "description": "User's favorite meals sorted by order frequency",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "favoriteMeals": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "recipe_id": {
+                            "type": "integer",
+                            "example": 11
+                          },
+                          "recipe_name": {
+                            "type": "string",
+                            "example": "Grilled Salmon"
+                          },
+                          "price": {
+                            "type": "number",
+                            "example": 34000
+                          },
+                          "image_url": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "https://example.com/image.jpg"
+                          },
+                          "total_ordered": {
+                            "type": "integer",
+                            "description": "Total quantity ordered across all orders",
+                            "example": 15
+                          },
+                          "times_ordered": {
+                            "type": "integer",
+                            "description": "Number of times this recipe was ordered",
+                            "example": 5
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "message": "No token provided"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Error fetching favorite meals"
+                }
+              }
+            }
           }
         }
       }
@@ -996,13 +1238,118 @@
         ],
         "responses": {
           "200": {
-            "description": "Recipe details with ingredients"
+            "description": "Recipe details with ingredients",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "recipe_id": {
+                      "type": "integer",
+                      "example": 11
+                    },
+                    "recipe_name": {
+                      "type": "string",
+                      "example": "Grilled Salmon"
+                    },
+                    "category": {
+                      "type": "string",
+                      "example": "Main Course"
+                    },
+                    "calories": {
+                      "type": "number",
+                      "nullable": true,
+                      "example": 450
+                    },
+                    "protein": {
+                      "type": "number",
+                      "nullable": true,
+                      "example": 35
+                    },
+                    "fat": {
+                      "type": "number",
+                      "nullable": true,
+                      "example": 20
+                    },
+                    "carbohydrate": {
+                      "type": "number",
+                      "nullable": true,
+                      "example": 15
+                    },
+                    "fiber": {
+                      "type": "number",
+                      "nullable": true,
+                      "example": 3
+                    },
+                    "price": {
+                      "type": "number",
+                      "example": 34000
+                    },
+                    "image_url": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "https://example.com/image.jpg"
+                    },
+                    "ingredients": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ingredient_id": {
+                            "type": "integer",
+                            "example": 5
+                          },
+                          "ingredient": {
+                            "type": "string",
+                            "example": "Salmon Fillet"
+                          },
+                          "amount": {
+                            "type": "number",
+                            "example": 200
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "Recipe not found"
+            "description": "Recipe not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Recipe not found"
+                    }
+                  }
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    },
+                    "details": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -1075,13 +1422,56 @@
         },
         "responses": {
           "200": {
-            "description": "Recipe updated successfully"
+            "description": "Recipe updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Recipe updated successfully"
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "Recipe not found"
+            "description": "Recipe not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Recipe not found"
+                    }
+                  }
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    },
+                    "details": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -1101,13 +1491,56 @@
         ],
         "responses": {
           "200": {
-            "description": "Recipe deleted successfully"
+            "description": "Recipe deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Recipe deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "Recipe not found"
+            "description": "Recipe not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Recipe not found"
+                    }
+                  }
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    },
+                    "details": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1137,10 +1570,109 @@
         ],
         "responses": {
           "200": {
-            "description": "List of recipes grouped by category"
+            "description": "List of recipes grouped by category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "example": 1
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "Main Course"
+                      },
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "example": 11
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Grilled Salmon"
+                            },
+                            "price": {
+                              "type": "number",
+                              "example": 34000
+                            },
+                            "rating": {
+                              "type": "number",
+                              "example": 5
+                            },
+                            "image": {
+                              "type": "string",
+                              "nullable": true,
+                              "example": "https://example.com/image.jpg"
+                            },
+                            "calories": {
+                              "type": "number",
+                              "nullable": true,
+                              "example": 450
+                            },
+                            "protein": {
+                              "type": "number",
+                              "nullable": true,
+                              "example": 35
+                            },
+                            "fat": {
+                              "type": "number",
+                              "nullable": true,
+                              "example": 20
+                            },
+                            "fiber": {
+                              "type": "number",
+                              "nullable": true,
+                              "example": 3
+                            },
+                            "carb": {
+                              "type": "number",
+                              "nullable": true,
+                              "example": 15
+                            },
+                            "is_available": {
+                              "type": "boolean",
+                              "example": true
+                            },
+                            "category": {
+                              "type": "string",
+                              "example": "Main Course"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    },
+                    "details": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -1199,13 +1731,65 @@
         },
         "responses": {
           "201": {
-            "description": "Recipe created successfully"
+            "description": "Recipe created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Recipe added successfully"
+                    },
+                    "recipeId": {
+                      "type": "integer",
+                      "example": 11
+                    },
+                    "image_url": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "https://example.com/image.jpg"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Recipe name is required"
+                    }
+                  }
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    },
+                    "details": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
