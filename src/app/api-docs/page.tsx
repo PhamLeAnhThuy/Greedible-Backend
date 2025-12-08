@@ -48,35 +48,94 @@ export default function SwaggerPage() {
         showExtensions: true,
         showCommonExtensions: true,
         persistAuthorization: true,
+        requestInterceptor: (request: any) => {
+          return request;
+        },
+        responseInterceptor: (response: any) => {
+          return response;
+        },
         onComplete: () => {
           setIsLoading(false);
-          // Force Swagger UI to render examples
-          setTimeout(() => {
-            // Expand all response sections
-            const responseHeaders = document.querySelectorAll('.response-header');
-            responseHeaders.forEach((header: any) => {
-              const clickable = header.querySelector('span');
-              if (clickable && clickable.click) {
-                clickable.click();
+          // Force Swagger UI to show all examples by expanding response sections
+          const expandAllResponses = () => {
+            // First, expand all operation blocks
+            const operationBlocks = document.querySelectorAll('.opblock');
+            operationBlocks.forEach((block: any) => {
+              const summary = block.querySelector('.opblock-summary, .opblock-summary-control');
+              if (summary) {
+                const isExpanded = block.classList.contains('is-open');
+                if (!isExpanded) {
+                  try {
+                    summary.click();
+                  } catch (e) {
+                    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+                    summary.dispatchEvent(event);
+                  }
+                }
               }
             });
             
-            // Expand example sections
-            const exampleTabs = document.querySelectorAll('.examples-select');
-            exampleTabs.forEach((tab: any) => {
-              if (tab && tab.click) {
-                tab.click();
-              }
-            });
-            
-            // Also try clicking on response content type buttons to show examples
-            const contentTypeButtons = document.querySelectorAll('.response-content-type');
-            contentTypeButtons.forEach((btn: any) => {
-              if (btn && btn.click) {
-                btn.click();
-              }
-            });
-          }, 2000);
+            // Then expand all response sections
+            setTimeout(() => {
+              const responseContainers = document.querySelectorAll('.response, .response-container');
+              responseContainers.forEach((container: any) => {
+                // Find response headers and click to expand
+                const headers = container.querySelectorAll('.response-header, .response-col_status, [class*="response-header"]');
+                headers.forEach((header: any) => {
+                  const clickable = header.querySelector('span, button, a, div[role="button"]') || header;
+                  if (clickable) {
+                    try {
+                      clickable.click();
+                    } catch (e) {
+                      const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+                      clickable.dispatchEvent(event);
+                    }
+                  }
+                });
+                
+                // Force content-type selectors to show examples
+                const contentTypeSelectors = container.querySelectorAll('.response-content-type, .content-type, [class*="content-type"]');
+                contentTypeSelectors.forEach((selector: any) => {
+                  try {
+                    selector.click();
+                  } catch (e) {
+                    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+                    selector.dispatchEvent(event);
+                  }
+                });
+                
+                // Force example sections to be visible with CSS
+                const exampleSections = container.querySelectorAll('.example, .examples, [class*="example"], pre.highlight-code');
+                exampleSections.forEach((section: any) => {
+                  if (section) {
+                    section.style.display = 'block';
+                    section.style.visibility = 'visible';
+                    section.style.opacity = '1';
+                    // Remove any hidden classes
+                    section.classList.remove('hidden', 'hide');
+                    section.classList.add('show', 'visible');
+                  }
+                });
+              });
+              
+              // Also look for example tabs/buttons and click them
+              const exampleButtons = document.querySelectorAll('[class*="example"], .examples-select, button[aria-label*="example" i]');
+              exampleButtons.forEach((btn: any) => {
+                try {
+                  btn.click();
+                } catch (e) {
+                  const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+                  btn.dispatchEvent(event);
+                }
+              });
+            }, 300);
+          };
+          
+          // Try multiple times with increasing delays to ensure Swagger UI has fully rendered
+          setTimeout(expandAllResponses, 500);
+          setTimeout(expandAllResponses, 1500);
+          setTimeout(expandAllResponses, 3000);
+          setTimeout(expandAllResponses, 5000);
         }
       });
     };
@@ -134,6 +193,31 @@ export default function SwaggerPage() {
         }
         #swagger-ui {
           padding: 20px;
+        }
+        /* Ensure example sections are visible */
+        .swagger-ui .example,
+        .swagger-ui .examples,
+        .swagger-ui [class*="example"] {
+          display: block !important;
+          visibility: visible !important;
+        }
+        /* Expand response sections by default */
+        .swagger-ui .response {
+          margin-top: 10px;
+        }
+        .swagger-ui .response-content-type {
+          display: block !important;
+        }
+        /* Ensure response body examples are shown */
+        .swagger-ui .response-col_description .example,
+        .swagger-ui .response-col_description .examples {
+          display: block !important;
+          margin-top: 10px;
+        }
+        /* Make sure example code blocks are visible */
+        .swagger-ui .example pre,
+        .swagger-ui .examples pre {
+          display: block !important;
         }
       `}</style>
       <div className="swagger-header">
