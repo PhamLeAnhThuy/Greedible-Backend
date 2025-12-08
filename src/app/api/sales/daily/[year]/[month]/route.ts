@@ -3,10 +3,12 @@ import { supabase } from "@/src/lib/supabase/client";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { year: string; month: string } }
+  context: { params: Promise<{ year: string; month: string }> }
 ) {
   try {
-    const { year, month } = params;
+    // Important: params is now a Promise → Must await
+    const { year, month } = await context.params;
+
     const yearNum = Number(year);
     const monthNum = Number(month);
 
@@ -24,11 +26,9 @@ export async function GET(
       );
     }
 
-    // Get full month date range
     const startDate = `${year}-${month.padStart(2, "0")}-01`;
     const endDate = `${year}-${month.padStart(2, "0")}-31`;
 
-    // 1) Fetch all sales in that month
     const { data: sales, error } = await supabase
       .from("sale")
       .select("sale_time, sale_id")
@@ -40,22 +40,16 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // 2) Aggregate sales per day
-    const dailyMap: { [day: number]: number } = {};
+    const dailyMap: Record<number, number> = {};
 
     sales.forEach((row: any) => {
       const day = new Date(row.sale_time).getDate();
       dailyMap[day] = (dailyMap[day] || 0) + 1;
     });
 
-    // 3) Convert map to array format
-    const dailyData = Object.keys(dailyMap).map((day: any) => ({
-      day: Number(day),
-      count: dailyMap[day],
-    }));
-
-    // Sort by day
-    dailyData.sort((a, b) => a.day - b.day);
+    const dailyData = Object.entries(dailyMap)
+      .map(([day, count]) => ({ day: Number(day), count }))
+      .sort((a, b) => a.day - b.day);
 
     return NextResponse.json(dailyData);
   } catch (err) {
