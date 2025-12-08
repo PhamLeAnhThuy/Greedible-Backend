@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
-
+import { supabase } from '@/src/lib/supabase/client';
 /**
  * @swagger
  * /api/orders/{orderId}:
@@ -30,8 +29,6 @@ export async function GET(
   try {
     // Next.js 15 requires awaiting params
     const { id: orderId } = await context.params;
-
-    const supabase = await createServerClient();
 
     const { data: order, error } = await supabase
       .from('sale')

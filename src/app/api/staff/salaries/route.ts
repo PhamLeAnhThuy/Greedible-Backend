@@ -1,34 +1,42 @@
-// app/api/salaries/route.ts
+// app/api/staff/salaries/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/src/lib/supabase/client';
 
-// Middleware function to verify authentication
-async function authenticateRequest(req: NextRequest) {
+// Middleware function to verify authentication using staff table
+async function authenticateStaffRequest(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return null;
   }
   
   const token = authHeader.substring(7);
-  const { data: { user }, error } = await supabase.auth.getUser(token);
   
-  if (error || !user) {
+  // Query staff table to find matching token
+  const { data: staff, error } = await supabase
+    .from('staff')
+    .select('staff_id, staff_name, role, auth_token')
+    .eq('auth_token', token)
+    .single();
+  
+  if (error || !staff) {
     return null;
   }
   
-  return user;
+  return staff;
 }
 
 export async function GET(req: NextRequest) {
   try {
-    // Authenticate the request
-    const user = await authenticateRequest(req);
-    if (!user) {
+    // Authenticate the request using staff table
+    const authenticatedStaff = await authenticateStaffRequest(req);
+    if (!authenticatedStaff) {
       return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
+        { success: false, message: 'Unauthorized - Invalid or missing token' },
         { status: 401 }
       );
     }
+
+    console.log(`Request authenticated for staff: ${authenticatedStaff.staff_name} (${authenticatedStaff.role})`);
 
     // Get query parameters
     const { searchParams } = new URL(req.url);
@@ -96,6 +104,11 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      authenticated_as: {
+        staff_id: authenticatedStaff.staff_id,
+        name: authenticatedStaff.staff_name,
+        role: authenticatedStaff.role
+      },
       employees: employees
     });
 

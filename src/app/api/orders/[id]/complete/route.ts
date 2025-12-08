@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from '@/src/lib/supabase/client';
 import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
 /**
@@ -43,8 +43,6 @@ export async function PUT(
 
     // IMPORTANT: Next.js 15 requires awaiting params
     const { id: orderId } = await context.params;
-
-    const supabase = await createServerClient();
 
     // Ensure the order belongs to the authenticated customer
     const { data: order, error: orderError } = await supabase
