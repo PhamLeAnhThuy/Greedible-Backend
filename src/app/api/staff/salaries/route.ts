@@ -1,45 +1,30 @@
 // app/api/staff/salaries/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/src/lib/supabase/client';
+import { authenticateToken } from '@/src/lib/auth/middleware';
+import { handleCorsOptions } from '@/src/lib/utils/cors';
 
-// Middleware function to verify authentication using staff table
-async function authenticateStaffRequest(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
-  
-  const token = authHeader.substring(7);
-  
-  // Query staff table to find matching token
-  const { data: staff, error } = await supabase
-    .from('staff')
-    .select('staff_id, staff_name, role, auth_token')
-    .eq('auth_token', token)
-    .single();
-  
-  if (error) {
-    return null;
-  }
-  
-  return staff;
-}
-
-export async function GET(req: NextRequest) {
+export async function GET(request: Request) {
   try {
-    // Authenticate the request using staff table
-    const authenticatedStaff = await authenticateStaffRequest(req);
-    if (!authenticatedStaff) {
+    // Authenticate the request using JWT token (staff only)
+    const authResult = await authenticateToken(request);
+    if (authResult.error) {
+      console.error('Authentication failed:', {
+        message: authResult.error.message,
+        status: authResult.error.status,
+        hasAuthHeader: !!request.headers.get('authorization')
+      });
       return NextResponse.json(
-        { success: false, message: 'Unauthorized - Invalid or missing token' },
-        { status: 401 }
+        { success: false, message: authResult.error.message },
+        { status: authResult.error.status }
       );
     }
 
-    console.log(`Request authenticated for staff: ${authenticatedStaff.staff_name} (${authenticatedStaff.role})`);
+    const authenticatedStaff = authResult.user;
+    console.log(`Request authenticated for staff: ${authenticatedStaff.staff_name || authenticatedStaff.staff_email} (${authenticatedStaff.role})`);
 
     // Get query parameters
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const month = searchParams.get('month');
     const year = searchParams.get('year');
 
@@ -106,7 +91,7 @@ export async function GET(req: NextRequest) {
       success: true,
       authenticated_as: {
         staff_id: authenticatedStaff.staff_id,
-        name: authenticatedStaff.staff_name,
+        name: authenticatedStaff.staff_name || authenticatedStaff.staff_email,
         role: authenticatedStaff.role
       },
       employees: employees
@@ -119,4 +104,9 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Handle CORS preflight requests
+export async function OPTIONS() {
+  return handleCorsOptions();
 }
