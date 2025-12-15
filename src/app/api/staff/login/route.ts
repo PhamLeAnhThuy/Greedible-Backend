@@ -32,13 +32,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Generate token
+    // 3. Generate token with expiration (24 hours)
     const token = jwt.sign(
       {
         id: staff.staff_id,
         email: staff.staff_email,
         role: staff.role,
         type: "staff",
+        name: staff.staff_name, // Include name in token
       },
       process.env.JWT_SECRET!,
       { expiresIn: "24h" }

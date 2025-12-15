@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { authenticateToken } from '@/src/lib/auth/middleware';
 import { paymentService } from '@/src/lib/services/paymentService';
 
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    const supabase = await createServerClient();
+
 
     // Get order details
     const { data: order, error: orderError } = await supabase

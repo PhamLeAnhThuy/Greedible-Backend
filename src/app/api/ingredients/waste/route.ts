@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { authenticateToken } from '@/src/lib/auth/middleware';
 
 export async function GET(request: Request) {
@@ -9,8 +9,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, message: authResult.error.message }, { status: authResult.error.status });
     }
 
-    const supabase = await createServerClient();
-
     const { data: wasteData, error } = await supabase
       .from('waste')
       .select(`
@@ -18,6 +16,7 @@ export async function GET(request: Request) {
         waste_date,
         waste_detail(
           quantity,
+          reason,
           ingredient(
             ingredient_name,
             unit
@@ -30,14 +29,15 @@ export async function GET(request: Request) {
       throw error;
     }
 
-    // Flatten the structure to match the original query
+    // Flatten the structure and include reason
     const formattedWaste = wasteData?.flatMap((w: any) =>
       w.waste_detail.map((wd: any) => ({
         waste_id: w.waste_id,
         waste_date: w.waste_date,
         ingredient_name: wd.ingredient.ingredient_name,
         wasted_quantity: wd.quantity,
-        unit: wd.ingredient.unit
+        unit: wd.ingredient.unit,
+        reason: wd.reason
       }))
     ) || [];
 

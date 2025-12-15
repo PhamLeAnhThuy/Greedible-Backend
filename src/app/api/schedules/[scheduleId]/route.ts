@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { authenticateToken } from '@/src/lib/auth/middleware';
 
 export async function DELETE(
@@ -24,7 +24,7 @@ export async function DELETE(
       );
     }
 
-    const supabase = await createServerClient();
+
 
     // Delete the specific schedule entry
     const { error, count } = await supabase

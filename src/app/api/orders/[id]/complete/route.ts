@@ -1,32 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from '@/src/lib/supabase/client';
 import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
-/**
- * @swagger
- * /api/orders/{orderId}/complete:
- *   put:
- *     summary: Mark customer order as completed
- *     description: Mark a customer's order as completed and award loyalty points.
- *     tags: [Orders]
- *     security:
- *       - Bearer: []
- *     parameters:
- *       - in: path
- *         name: orderId
- *         required: true
- *         schema:
- *           type: number
- *     responses:
- *       200:
- *         description: Order marked as completed
- *       401:
- *         description: Unauthorized
- *       404:
- *         description: Order not found
- *       500:
- *         description: Server error
- */
 
 export async function PUT(
   request: NextRequest,
@@ -43,8 +18,6 @@ export async function PUT(
 
     // IMPORTANT: Next.js 15 requires awaiting params
     const { id: orderId } = await context.params;
-
-    const supabase = await createServerClient();
 
     // Ensure the order belongs to the authenticated customer
     const { data: order, error: orderError } = await supabase

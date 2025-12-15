@@ -1,34 +1,112 @@
-import { NextResponse } from "next/server";
-import { authenticateToken } from "@/src/lib/auth/middleware";
-import { supabase } from "@/src/lib/supabase/client";
+// app/api/salary/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from '@/src/lib/supabase/client';
 
-export async function GET(request: Request) {
-  const auth = await authenticateToken(request);
+// Middleware function to verify authentication and get user data
+async function authenticateRequest(req: NextRequest) {
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return null;
+  }
   
-  if (auth.error) return NextResponse.json(auth.error, { status: auth.error.status });
+  const token = authHeader.substring(7);
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  
+  if (error || !user) {
+    return null;
+  }
+  
+  // Get staff_id from user metadata or linked staff table
+  // Assuming staff_id is stored in user metadata or you have a user_staff mapping
+  const { data: staffData } = await supabase
+    .from('staff')
+    .select('staff_id')
+    .eq('user_id', user.id)
+    .single();
+  
+  return { user, staff_id: staffData?.staff_id };
+}
 
-  const staffId = auth.user.staff_id;
+export async function GET(req: NextRequest) {
+  try {
+    // Authenticate the request
+    const authData = await authenticateRequest(req);
+    if (!authData) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
 
-  const { searchParams } = new URL(request.url);
-  const month = searchParams.get("month");
-  const year = searchParams.get("year");
+    const { staff_id: staffId } = authData;
 
-  if (!month || !year)
-    return NextResponse.json({ success: false, message: "Month and year are required." }, { status: 400 });
+    if (!staffId) {
+      return NextResponse.json(
+        { success: false, message: 'Not authenticated.' },
+        { status: 401 }
+      );
+    }
 
-  const { data, error } = await supabase.rpc("get_staff_salary", {
-    p_month: Number(month),
-    p_year: Number(year),
-    p_staff_id: staffId,
-  });
+    // Get query parameters
+    const { searchParams } = new URL(req.url);
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
 
-  if (error) return NextResponse.json({ success: false, message: "Error fetching staff salary" }, { status: 500 });
+    if (!month || !year) {
+      return NextResponse.json(
+        { success: false, message: 'Month and year are required.' },
+        { status: 400 }
+      );
+    }
 
-  if (!data || data.length === 0)
-    return NextResponse.json({ hours: 0, salary: 0 });
+    console.log(`Fetching salary for staff ${staffId}, month: ${month}, year: ${year}`);
 
-  return NextResponse.json({
-    hours: data[0].working_hours,
-    salary: data[0].salary
-  });
+    // Fetch staff data
+    const { data: staff, error: staffError } = await supabase
+      .from('staff')
+      .select('staff_id, staff_name, role, pay_rates')
+      .eq('staff_id', staffId)
+      .single();
+
+    if (staffError || !staff) {
+      console.error('Error fetching staff:', staffError);
+      return NextResponse.json({ hours: 0, salary: 0 });
+    }
+
+    // Fetch schedules for the given month/year
+    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+    const endDate = new Date(parseInt(year), parseInt(month), 0);
+
+    const { data: schedules, error: scheduleError } = await supabase
+      .from('schedule')
+      .select('schedule_id')
+      .eq('staff_id', staffId)
+      .gte('shift_date', startDate.toISOString().split('T')[0])
+      .lte('shift_date', endDate.toISOString().split('T')[0]);
+
+    if (scheduleError) {
+      console.error('Error fetching schedules:', scheduleError);
+      return NextResponse.json(
+        { success: false, message: 'Error fetching schedule data' },
+        { status: 500 }
+      );
+    }
+
+    // Calculate salary
+    const workingShifts = schedules?.length || 0;
+    const workingHours = workingShifts * 8;
+    const salary = workingHours * staff.pay_rates;
+
+    return NextResponse.json({
+      hours: workingHours,
+      salary: salary
+    });
+
+  } catch (error) {
+    console.error('Error fetching staff salary:', error);
+    return NextResponse.json(
+      { success: false, message: 'Error fetching staff salary' },
+      { status: 500 }
+    );
+  }
 }

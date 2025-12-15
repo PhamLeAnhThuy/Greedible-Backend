@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 
 /**
  * @swagger
@@ -32,7 +32,7 @@ export async function GET(
 
     console.log('Fetching guest orders for phone:', phone);
 
-    const supabase = await createServerClient();
+
 
     const { data: customer, error: customerError } = await supabase
       .from('customer')
