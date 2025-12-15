@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt, { JwtPayload, TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { supabase } from '../supabase/client';
 
@@ -8,6 +8,7 @@ interface StaffJwtPayload extends JwtPayload {
   email: string;
   role?: string;
   type?: 'staff';
+  name?: string; // Optional staff name
 }
 
 interface CustomerJwtPayload extends JwtPayload {
@@ -19,43 +20,89 @@ interface CustomerJwtPayload extends JwtPayload {
 /**
  * Authenticate JWT token (for staff)
  * Returns { user, error } - if error exists, return error response
+ * Verifies JWT token and returns decoded payload without database query
  */
 export async function authenticateToken(request: Request) {
   const authHeader = request.headers.get('authorization');
-  const token = authHeader?.split(' ')[1];
-
-  if (!token) {
+  
+  if (!authHeader) {
     return { 
       error: { 
         status: 401, 
-        message: 'No token provided' 
+        message: 'No token provided. Please include Authorization header with Bearer token.' 
+      } 
+    };
+  }
+
+  // Check if header starts with "Bearer "
+  if (!authHeader.startsWith('Bearer ')) {
+    return { 
+      error: { 
+        status: 401, 
+        message: 'Invalid authorization format. Expected "Bearer <token>"' 
+      } 
+    };
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  if (!token || token.trim() === '') {
+    return { 
+      error: { 
+        status: 401, 
+        message: 'No token provided. Token is missing or empty.' 
       } 
     };
   }
 
   try {
+    // Verify JWT token (this automatically checks expiration)
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as StaffJwtPayload;
 
-    // Fetch staff user details from Supabase
-    const { data: staff, error: dbError } = await supabase
-      .from('staff')
-      .select('staff_id, staff_name, staff_email, role')
-      .eq('staff_id', decoded.id)
-      .single();
-
-    if (dbError || !staff) {
-      console.error('Staff user not found for ID:', decoded.id);
+    // Ensure the token is for staff
+    if (decoded.type !== 'staff') {
+      console.error('Token is not for staff:', decoded);
       return { 
         error: { 
-          status: 404, 
-          message: 'Staff user not found' 
+          status: 403, 
+          message: 'Access denied. Staff token required.' 
         } 
       };
     }
 
-    return { user: staff, error: null };
+    // Return user object from decoded JWT payload (no database query needed)
+    // JWT already contains: id, email, role, type, name (if included)
+    return { 
+      user: {
+        staff_id: decoded.id,
+        staff_email: decoded.email,
+        role: decoded.role,
+        ...(decoded.name && { staff_name: decoded.name })
+      }, 
+      error: null 
+    };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    
+    // Handle specific JWT errors
+    if (err instanceof TokenExpiredError) {
+      return { 
+        error: { 
+          status: 401, 
+          message: 'Token expired' 
+        } 
+      };
+    }
+    
+    if (err instanceof JsonWebTokenError) {
+      return { 
+        error: { 
+          status: 403, 
+          message: 'Invalid token' 
+        } 
+      };
+    }
+    
     console.error('JWT verification failed:', errorMessage);
     return { 
       error: { 
@@ -179,13 +226,14 @@ export async function authenticateStaffLogin(email: string, password: string) {
       };
     }
 
-    // Create token
+    // Create token with expiration (24 hours)
     const token = jwt.sign(
       { 
         id: staffMember.staff_id,
         email: staffMember.staff_email,
         role: staffMember.role,
-        type: 'staff'
+        type: 'staff',
+        name: staffMember.staff_name // Include name in token
       },
       process.env.JWT_SECRET!,
       { expiresIn: '24h' }
@@ -215,21 +263,43 @@ export async function authenticateStaffLogin(email: string, password: string) {
 /**
  * Authenticate customer JWT token (for protected routes)
  * Returns { user, error } - if error exists, return error response
+ * Verifies JWT token and returns decoded payload without database query
  */
 export async function authenticateCustomerToken(request: Request) {
   const authHeader = request.headers.get('authorization');
-  const token = authHeader?.split(' ')[1];
-
-  if (!token) {
+  
+  if (!authHeader) {
     return { 
       error: { 
         status: 401, 
-        message: 'No token provided' 
+        message: 'No token provided. Please include Authorization header with Bearer token.' 
+      } 
+    };
+  }
+
+  // Check if header starts with "Bearer "
+  if (!authHeader.startsWith('Bearer ')) {
+    return { 
+      error: { 
+        status: 401, 
+        message: 'Invalid authorization format. Expected "Bearer <token>"' 
+      } 
+    };
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  if (!token || token.trim() === '') {
+    return { 
+      error: { 
+        status: 401, 
+        message: 'No token provided. Token is missing or empty.' 
       } 
     };
   }
 
   try {
+    // Verify JWT token (this automatically checks expiration)
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as CustomerJwtPayload;
 
     // Ensure the token is for a customer
@@ -243,32 +313,37 @@ export async function authenticateCustomerToken(request: Request) {
       };
     }
 
-
-
-    // Fetch customer details from Supabase
-    const { data: customers, error: dbError } = await supabase
-      .from('customer')
-      .select('customer_id, customer_name, email, phone, loyalty_point, address')
-      .eq('customer_id', decoded.id)
-      .limit(1);
-
-    if (dbError) {
-      throw dbError;
-    }
-
-    if (!customers || customers.length === 0) {
-      console.error('Customer not found for ID:', decoded.id);
+    // Return user object from decoded JWT payload (no database query needed)
+    // JWT already contains: id, email, type
+    return { 
+      user: {
+        customer_id: decoded.id,
+        email: decoded.email
+      }, 
+      error: null 
+    };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    
+    // Handle specific JWT errors
+    if (err instanceof TokenExpiredError) {
       return { 
         error: { 
-          status: 404, 
-          message: 'Customer not found' 
+          status: 401, 
+          message: 'Token expired' 
         } 
       };
     }
-
-    return { user: customers[0], error: null };
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    
+    if (err instanceof JsonWebTokenError) {
+      return { 
+        error: { 
+          status: 403, 
+          message: 'Invalid token' 
+        } 
+      };
+    }
+    
     console.error('JWT verification failed:', errorMessage);
     return { 
       error: { 

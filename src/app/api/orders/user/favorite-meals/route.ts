@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
 /**
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, message: authResult.error.message }, { status: authResult.error.status });
     }
 
-    const supabase = await createServerClient();
+
 
     // Get recipes ordered by this customer with count
     const { data: orderDetails, error } = await supabase

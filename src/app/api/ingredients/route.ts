@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { authenticateToken } from '@/src/lib/auth/middleware';
 
 export async function GET(request: Request) {
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, message: authResult.error.message }, { status: authResult.error.status });
     }
 
-    const supabase = await createServerClient();
+
 
     const { data: ingredients, error } = await supabase
       .from('ingredient')
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Ingredient name, quantity, and unit are required' }, { status: 400 });
     }
 
-    const supabase = await createServerClient();
+
 
     const { data: newIngredient, error: insertError } = await supabase
       .from('ingredient')

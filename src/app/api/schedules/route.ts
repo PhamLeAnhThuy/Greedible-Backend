@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { authenticateToken } from '@/src/lib/auth/middleware';
 
 /**
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     const formattedStartDate = formatDate(startOfWeek);
     const formattedEndOfWeek = formatDate(endOfWeek);
 
-    const supabase = await createServerClient();
+
 
     // Fetch all schedule entries with staff info for the week
     const { data: shifts, error } = await supabase
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createServerClient();
+
 
     if (staff_id) {
       // Check if staff is already assigned to this shift on this date
@@ -315,7 +315,7 @@ export async function DELETE(request: NextRequest) {
     // Normalize shift type
     const normalizedShift = shift.charAt(0).toUpperCase() + shift.slice(1).toLowerCase();
 
-    const supabase = await createServerClient();
+
 
     // Delete all schedule entries for this date and shift
     const { data, error, count } = await supabase

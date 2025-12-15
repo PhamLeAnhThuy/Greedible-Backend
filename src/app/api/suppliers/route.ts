@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
+
 
     const { data: suppliers, error } = await supabase
       .from('supplier')

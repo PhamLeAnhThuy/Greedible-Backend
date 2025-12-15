@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from '@/src/lib/supabase/client';
 import { authenticateToken } from '@/src/lib/auth/middleware';
 
 export async function GET(request: Request) {
@@ -12,8 +12,6 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month');
     const year = searchParams.get('year');
-
-    const supabase = await createServerClient();
 
     if (month && year) {
       // Fetch daily import totals for the specified month and year
@@ -45,21 +43,28 @@ export async function GET(request: Request) {
 
       // Group by day and sum
       const dailyTotals: Record<number, number> = {};
+      let monthTotal = 0;
+      
       restockData?.forEach((rd: any) => {
         if (rd.restock?.restock_date) {
           const date = new Date(rd.restock.restock_date);
           const day = date.getDate();
           const total = rd.import_quantity * rd.import_price;
           dailyTotals[day] = (dailyTotals[day] || 0) + total;
+          monthTotal += total;
         }
       });
 
       const dailyImportTotals = Object.entries(dailyTotals).map(([day, total]) => ({
         day: parseInt(day),
         total_import_price: total
-      }));
+      })).sort((a, b) => a.day - b.day);
 
-      return NextResponse.json({ success: true, dailyImportTotals });
+      return NextResponse.json({ 
+        success: true, 
+        dailyImportTotals,
+        monthTotal
+      });
     } else {
       // Get all restock orders (summary)
       const { data: restocks, error } = await supabase
@@ -96,7 +101,19 @@ export async function POST(request: Request) {
   try {
     const authResult = await authenticateToken(request);
     if (authResult.error) {
-      return NextResponse.json({ success: false, message: authResult.error.message }, { status: authResult.error.status });
+      console.error('Restock POST auth error:', {
+        message: authResult.error.message,
+        status: authResult.error.status,
+        hasAuthHeader: request.headers.has('authorization'),
+        authHeader: request.headers.get('authorization') ? 'present' : 'missing'
+      });
+      return NextResponse.json({ 
+        success: false, 
+        message: authResult.error.message,
+        error: authResult.error.message === 'No token provided' 
+          ? 'Please ensure you are logged in as staff and the Authorization header is included in your request (Bearer token)'
+          : authResult.error.message
+      }, { status: authResult.error.status });
     }
 
     const body = await request.json();
@@ -108,8 +125,6 @@ export async function POST(request: Request) {
         message: 'Invalid restock data provided'
       }, { status: 400 });
     }
-
-    const supabase = await createServerClient();
 
     // Insert restock
     const { data: newRestock, error: restockError } = await supabase

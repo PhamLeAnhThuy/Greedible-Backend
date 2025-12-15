@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 
 /**
  * @swagger
@@ -169,7 +169,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Invalid email format.' }, { status: 400 });
     }
 
-    const supabase = await createServerClient();
+
 
     // Check if email or phone already exists
     const { data: existingUsers, error: checkError } = await supabase

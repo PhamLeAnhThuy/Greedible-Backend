@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
+import { supabase } from "@/src/lib/supabase/client";
 import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 
 /**
@@ -129,7 +129,7 @@ export async function PUT(request: Request) {
 
     const addressJson = JSON.stringify(address);
 
-    const supabase = await createServerClient();
+
 
     const { error: updateError } = await supabase
       .from('customer')

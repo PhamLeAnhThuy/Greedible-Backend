@@ -1,27 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { createServerClient } from '@/src/lib/supabase/server';
-
-/**
- * @swagger
- * /api/orders/{orderId}:
- *   get:
- *     summary: Get order details
- *     description: Retrieve detailed information for a specific order including items.
- *     tags: [Orders]
- *     parameters:
- *       - in: path
- *         name: orderId
- *         required: true
- *         schema:
- *           type: number
- *     responses:
- *       200:
- *         description: Order details
- *       404:
- *         description: Order not found
- *       500:
- *         description: Server error
- */
+import { supabase } from '@/src/lib/supabase/client';
 
 export async function GET(
   request: NextRequest,
@@ -30,8 +8,6 @@ export async function GET(
   try {
     // Next.js 15 requires awaiting params
     const { id: orderId } = await context.params;
-
-    const supabase = await createServerClient();
 
     const { data: order, error } = await supabase
       .from('sale')
