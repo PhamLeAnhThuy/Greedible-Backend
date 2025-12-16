@@ -1,43 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/src/lib/supabase/client';
-
-// Middleware function to verify authentication and get user data
-async function authenticateRequest(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
-  
-  const token = authHeader.substring(7);
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  
-  if (error || !user) {
-    return null;
-  }
-  
-  // Get staff_id from user metadata or linked staff table
-  // Assuming staff_id is stored in user metadata or you have a user_staff mapping
-  const { data: staffData } = await supabase
-    .from('staff')
-    .select('staff_id')
-    .eq('user_id', user.id)
-    .single();
-  
-  return { user, staff_id: staffData?.staff_id };
-}
+import { authenticateToken } from '@/src/lib/auth/middleware';
 
 export async function GET(req: NextRequest) {
   try {
-    // Authenticate the request
-    const authData = await authenticateRequest(req);
-    if (!authData) {
+    // Authenticate the request using JWT token (staff only)
+    const authResult = await authenticateToken(req);
+    if (authResult.error) {
+      console.error('Authentication failed:', {
+        message: authResult.error.message,
+        status: authResult.error.status,
+        hasAuthHeader: !!req.headers.get('authorization')
+      });
       return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
+        { success: false, message: authResult.error.message },
+        { status: authResult.error.status }
       );
     }
 
-    const { staff_id: staffId } = authData;
+    const authenticatedStaff = authResult.user;
+    const staffId = authenticatedStaff.staff_id;
 
     if (!staffId) {
       return NextResponse.json(
