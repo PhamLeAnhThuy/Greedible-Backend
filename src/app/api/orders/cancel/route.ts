@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/src/lib/supabase/client';
-import { authenticateToken } from '@/src/lib/auth/middleware';
+import { authenticateCustomerToken } from '@/src/lib/auth/middleware';
 import { handleCorsOptions } from '@/src/lib/utils/cors';
 
 export async function POST(request: Request) {
   try {
-    const authResult = await authenticateToken(request);
+    // Allow customer token (not staff)
+    const authResult = await authenticateCustomerToken(request);
     if (authResult.error) {
       return NextResponse.json(
         { success: false, message: authResult.error.message },
