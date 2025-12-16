@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/src/lib/supabase/client";
+import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
@@ -15,13 +16,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const { data, error } = await supabase
       .from("staff")
       .insert([
         {
           staff_name,
           staff_email,
-          password,
+          password: hashedPassword, // store hashed password
           role,
           phone: phone || null,
           pay_rates: pay_rates || null,
@@ -36,6 +40,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // Never return password (even hashed)
+    delete (data as any).password;
 
     return NextResponse.json({ success: true, data }, { status: 201 });
   } catch (err) {
