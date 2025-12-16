@@ -6,7 +6,10 @@ export async function POST(request: Request) {
   try {
     const authResult = await authenticateCustomerToken(request);
     if (authResult.error) {
-      return NextResponse.json({ success: false, message: authResult.error.message }, { status: authResult.error.status });
+      return NextResponse.json(
+        { success: false, message: authResult.error.message },
+        { status: authResult.error.status }
+      );
     }
 
     const body = await request.json();
@@ -15,21 +18,30 @@ export async function POST(request: Request) {
       delivery_address,
       delivery_distance,
       delivery_charge,
-      payment_method,
-      loyalty_points_used = 0,
-      loyalty_points_earned = 0
+      payment_method
     } = body;
 
     if (!items || !delivery_address || delivery_distance === undefined) {
-      return NextResponse.json({
-        success: false,
-        message: 'Missing required fields'
-      }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: 'Missing required fields' },
+        { status: 400 }
+      );
     }
 
     // Calculate total amount
-    const totalAmount = items.reduce((total: number, item: any) => total + (item.price * item.quantity), 0);
-    const normalizedPaymentMethod = payment_method === 'momo wallet' ? 'momo' : payment_method || 'cash';
+    const totalAmount = items.reduce(
+      (total: number, item: any) => total + item.price * item.quantity,
+      0
+    );
+
+    const normalizedPaymentMethod =
+      payment_method === 'momo wallet' ? 'momo' : payment_method || 'cash';
+
+    const payment_status =
+      normalizedPaymentMethod === 'vietcombank' ||
+      normalizedPaymentMethod === 'momo'
+        ? 'Paid'
+        : 'Unpaid';
 
     // Create sale record
     const { data: newSale, error: saleError } = await supabase
@@ -37,7 +49,8 @@ export async function POST(request: Request) {
       .insert({
         total_amount: totalAmount,
         payment_method: normalizedPaymentMethod,
-        status: 'Pending',
+        payment_status,
+        status: 'Confirmed',
         customer_id: authResult.user!.customer_id,
         delivery_address,
         delivery_distance,
@@ -63,47 +76,26 @@ export async function POST(request: Request) {
       if (detailError) throw detailError;
     }
 
-    // Update loyalty points
-    let loyaltyPointsAdjustment = -loyalty_points_used;
-    // Only add earned points if order is completed
-    if (body.status === 'Completed') {
-      loyaltyPointsAdjustment += loyalty_points_earned;
-    }
-
-    if (loyaltyPointsAdjustment !== 0) {
-      const { error: loyaltyError } = await supabase
-        .from('customer')
-        .update({ loyalty_point: loyaltyPointsAdjustment })
-        .eq('customer_id', authResult.user!.customer_id);
-
-      if (loyaltyError) throw loyaltyError;
-    }
-
-    // Auto-complete after 15 seconds
-    setTimeout(async () => {
-      try {
-        await supabase
-          .from('sale')
-          .update({ status: 'Completed', completion_time: new Date().toISOString() })
-          .eq('sale_id', saleId)
-          .eq('status', 'Pending');
-      } catch (err) {
-        console.error('Auto-complete error:', err);
-      }
-    }, 15000);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Order created successfully',
-      orderId: saleId
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Order created successfully',
+        orderId: saleId
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating order:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({
-      success: false,
-      message: 'Error creating order',
-      error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
-    }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Error creating order',
+        error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
+      { status: 500 }
+    );
   }
 }
