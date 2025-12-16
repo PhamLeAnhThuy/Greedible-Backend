@@ -55,11 +55,31 @@ export async function POST(request: Request) {
     const { ingredient_name, quantity, unit, minimum_threshold, supplier_id } = body;
 
     if (!ingredient_name || quantity === undefined || unit === undefined) {
-      return NextResponse.json({ success: false, error: 'Ingredient name, quantity, and unit are required' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'Ingredient name, quantity, and unit are required' },
+        { status: 400 }
+      );
     }
 
+    // 1. Check if ingredient name already exists
+    const { data: existingIngredient, error: checkError } = await supabase
+      .from('ingredient')
+      .select('ingredient_id')
+      .eq('ingredient_name', ingredient_name)
+      .maybeSingle();
 
+    if (checkError) {
+      throw checkError;
+    }
 
+    if (existingIngredient) {
+      return NextResponse.json(
+        { success: false, error: 'Ingredient already exists' },
+        { status: 409 } // Conflict
+      );
+    }
+
+    // 2. Insert new ingredient
     const { data: newIngredient, error: insertError } = await supabase
       .from('ingredient')
       .insert({
@@ -75,6 +95,7 @@ export async function POST(request: Request) {
       throw insertError;
     }
 
+    // 3. Link supplier if provided
     if (supplier_id && newIngredient) {
       const { error: supplierError } = await supabase
         .from('supplier_product')
@@ -88,10 +109,24 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, message: 'Ingredient added successfully', ingredientId: newIngredient?.ingredient_id }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Ingredient added successfully',
+        ingredientId: newIngredient.ingredient_id
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error adding ingredient:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ success: false, error: 'Internal server error', details: process.env.NODE_ENV === 'development' ? errorMessage : undefined }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
+      { status: 500 }
+    );
   }
 }
