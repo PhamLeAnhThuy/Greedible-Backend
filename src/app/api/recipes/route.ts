@@ -159,7 +159,9 @@ export async function GET(request: Request) {
           fiber: recipe.fiber,
           carb: recipe.carbohydrate,
           is_available: isAvailable,
+          status: recipe.status,
           category: recipe.category
+          
         };
       })
     );
