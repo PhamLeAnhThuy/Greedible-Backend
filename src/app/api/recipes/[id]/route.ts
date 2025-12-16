@@ -95,8 +95,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   try {
     const { id: recipeId } = await params;
 
-
-
     // Get recipe details
     const { data: recipe, error: recipeError } = await supabase
       .from('recipe')

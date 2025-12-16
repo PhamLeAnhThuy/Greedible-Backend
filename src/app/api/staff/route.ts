@@ -45,3 +45,39 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const {id} = body; 
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: "Missing staff_id" },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("staff")
+      .delete()
+      .eq("staff_id", Number(id));
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: true, message: "Staff deleted successfully" },
+      { status: 200 }
+    );
+  } catch (err) {
+    return NextResponse.json(
+      { success: false, message: "Failed to delete staff" },
+      { status: 500 }
+    );
+  }
+}
