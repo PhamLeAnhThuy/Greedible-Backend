@@ -17,6 +17,8 @@ export async function GET(request: Request) {
         sale_id,
         sale_time,
         status,
+        payment_status,
+        payment_method,
         delivery_address,
         total_amount,
         order_detail(
