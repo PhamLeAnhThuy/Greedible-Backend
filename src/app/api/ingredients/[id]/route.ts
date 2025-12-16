@@ -9,7 +9,7 @@ export async function PUT(
     const { id } = await context.params;
 
     const body = await request.json();
-    const { ingredient_name, quantity, unit, minimum_threshold, supplier_id, good_for } = body;
+    const { ingredient_name, quantity, unit, minimum_threshold, good_for } = body;
 
     if (!ingredient_name || quantity === undefined || unit === undefined) {
       return NextResponse.json(
@@ -17,8 +17,6 @@ export async function PUT(
         { status: 400 }
       );
     }
-
-
 
     const { error: updateError, data: updatedData } = await supabase
       .from('ingredient')
@@ -35,17 +33,6 @@ export async function PUT(
     if (updateError) throw updateError;
     if (!updatedData || updatedData.length === 0) {
       return NextResponse.json({ success: false, error: 'Ingredient not found' }, { status: 404 });
-    }
-
-    // update supplier_product
-    await supabase.from('supplier_product').delete().eq('ingredient_id', id);
-
-    if (supplier_id) {
-      const { error: supplierError } = await supabase
-        .from('supplier_product')
-        .insert({ ingredient_id: id, supplier_id });
-
-      if (supplierError) throw supplierError;
     }
 
     return NextResponse.json({ success: true, message: 'Ingredient updated successfully' });
