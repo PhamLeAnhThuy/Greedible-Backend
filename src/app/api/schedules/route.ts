@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/src/lib/supabase/client";
-import { authenticateToken } from '@/src/lib/auth/middleware';
+import { authenticateToken } from "@/src/lib/auth/middleware";
 
 /**
  * Helper function to format date as YYYY-MM-DD
  */
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 
@@ -24,11 +24,11 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const startDate = searchParams.get('startDate');
+    const startDate = searchParams.get("startDate");
 
     if (!startDate) {
       return NextResponse.json(
-        { success: false, message: 'startDate query parameter is required' },
+        { success: false, message: "startDate query parameter is required" },
         { status: 400 }
       );
     }
@@ -40,11 +40,9 @@ export async function GET(request: NextRequest) {
     const formattedStartDate = formatDate(startOfWeek);
     const formattedEndOfWeek = formatDate(endOfWeek);
 
-
-
     // Fetch all schedule entries with staff info for the week
     const { data: shifts, error } = await supabase
-      .from('schedule')
+      .from("schedule")
       .select(
         `
         schedule_id,
@@ -54,18 +52,20 @@ export async function GET(request: NextRequest) {
         staff(staff_id, staff_name, role)
       `
       )
-      .gte('shift_date', `${formattedStartDate}T00:00:00`)
-      .lte('shift_date', `${formattedEndOfWeek}T23:59:59`)
-      .order('shift_date', { ascending: true })
-      .order('shift', { ascending: true });
+      .gte("shift_date", `${formattedStartDate}T00:00:00`)
+      .lte("shift_date", `${formattedEndOfWeek}T23:59:59`)
+      .order("shift_date", { ascending: true })
+      .order("shift", { ascending: true });
 
     if (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch shifts';
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to fetch shifts";
       return NextResponse.json(
         {
           success: false,
-          message: 'Error fetching shift data',
-          error: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+          message: "Error fetching shift data",
+          error:
+            process.env.NODE_ENV === "development" ? errorMessage : undefined,
         },
         { status: 500 }
       );
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       if (!scheduleData[shiftDate][shiftTime]) {
         scheduleData[shiftDate][shiftTime] = {
           id: `${shiftDate}-${shiftTime}`,
-          time: shiftTime === 'Morning' ? '08:00 - 15:00' : '15:00 - 22:00',
+          time: shiftTime === "Morning" ? "08:00 - 15:00" : "15:00 - 22:00",
           shift: shiftTime,
           staff: [],
         };
@@ -100,8 +100,8 @@ export async function GET(request: NextRequest) {
           name: shift.staff.staff_name,
           role: shift.staff.role,
           schedule_id: shift.schedule_id,
-          avatar: '👤',
-          color: '#CCCCCC',
+          avatar: "👤",
+          color: "#CCCCCC",
         });
       }
     });
@@ -122,12 +122,14 @@ export async function GET(request: NextRequest) {
       schedule: formattedSchedule,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       {
         success: false,
-        message: 'Error fetching shift data',
-        error: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+        message: "Error fetching shift data",
+        error:
+          process.env.NODE_ENV === "development" ? errorMessage : undefined,
       },
       { status: 500 }
     );
@@ -149,16 +151,20 @@ export async function POST(request: NextRequest) {
 
     if (!shift_date || !shift) {
       return NextResponse.json(
-        { success: false, message: 'shift_date and shift are required' },
+        { success: false, message: "shift_date and shift are required" },
         { status: 400 }
       );
     }
 
     // Validate shift type (accept both capitalized and lowercase)
-    const normalizedShift = shift.charAt(0).toUpperCase() + shift.slice(1).toLowerCase();
-    if (normalizedShift !== 'Morning' && normalizedShift !== 'Evening') {
+    const normalizedShift =
+      shift.charAt(0).toUpperCase() + shift.slice(1).toLowerCase();
+    if (normalizedShift !== "Morning" && normalizedShift !== "Evening") {
       return NextResponse.json(
-        { success: false, message: "Invalid shift type. Must be 'Morning' or 'Evening'" },
+        {
+          success: false,
+          message: "Invalid shift type. Must be 'Morning' or 'Evening'",
+        },
         { status: 400 }
       );
     }
@@ -171,33 +177,35 @@ export async function POST(request: NextRequest) {
 
     if (shiftDateObj < today) {
       return NextResponse.json(
-        { success: false, message: 'Cannot create a shift before today.' },
+        { success: false, message: "Cannot create a shift before today." },
         { status: 400 }
       );
     }
 
-
-
     if (staff_id) {
       // Check if staff is already assigned to this shift on this date
       const { data: existingEntry, error: checkError } = await supabase
-        .from('schedule')
-        .select('schedule_id')
-        .eq('shift_date', shift_date)
-        .eq('shift', normalizedShift)
-        .eq('staff_id', staff_id)
+        .from("schedule")
+        .select("schedule_id")
+        .eq("shift_date", shift_date)
+        .eq("shift", normalizedShift)
+        .eq("staff_id", staff_id)
         .single();
 
       if (existingEntry) {
         return NextResponse.json(
-          { success: false, message: 'Staff member already assigned to this shift on this date.' },
+          {
+            success: false,
+            message:
+              "Staff member already assigned to this shift on this date.",
+          },
           { status: 409 }
         );
       }
 
       // Insert staff assignment
       const { data: result, error } = await supabase
-        .from('schedule')
+        .from("schedule")
         .insert([
           {
             shift_date,
@@ -205,16 +213,18 @@ export async function POST(request: NextRequest) {
             staff_id,
           },
         ])
-        .select('*')
+        .select("*")
         .single();
 
       if (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to assign staff';
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to assign staff";
         return NextResponse.json(
           {
             success: false,
-            message: 'Error assigning staff to shift',
-            error: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+            message: "Error assigning staff to shift",
+            error:
+              process.env.NODE_ENV === "development" ? errorMessage : undefined,
           },
           { status: 500 }
         );
@@ -223,7 +233,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: true,
-          message: 'Staff assigned to shift successfully',
+          message: "Staff assigned to shift successfully",
           scheduleId: result?.schedule_id,
         },
         { status: 201 }
@@ -231,23 +241,26 @@ export async function POST(request: NextRequest) {
     } else {
       // Check if shift block already exists for this date+shift
       const { data: existingBlock, error: checkError } = await supabase
-        .from('schedule')
-        .select('schedule_id')
-        .eq('shift_date', shift_date)
-        .eq('shift', normalizedShift)
-        .is('staff_id', null)
+        .from("schedule")
+        .select("schedule_id")
+        .eq("shift_date", shift_date)
+        .eq("shift", normalizedShift)
+        .is("staff_id", null)
         .single();
 
       if (existingBlock) {
         return NextResponse.json(
-          { success: false, message: 'Shift already exists for this date and type.' },
+          {
+            success: false,
+            message: "Shift already exists for this date and type.",
+          },
           { status: 409 }
         );
       }
 
       // Create empty shift block
       const { data: result, error } = await supabase
-        .from('schedule')
+        .from("schedule")
         .insert([
           {
             shift_date,
@@ -255,16 +268,18 @@ export async function POST(request: NextRequest) {
             staff_id: null,
           },
         ])
-        .select('*')
+        .select("*")
         .single();
 
       if (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to create shift';
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to create shift";
         return NextResponse.json(
           {
             success: false,
-            message: 'Error creating shift block',
-            error: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+            message: "Error creating shift block",
+            error:
+              process.env.NODE_ENV === "development" ? errorMessage : undefined,
           },
           { status: 500 }
         );
@@ -273,19 +288,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: true,
-          message: 'Shift block created successfully',
+          message: "Shift block created successfully",
           scheduleId: result?.schedule_id,
         },
         { status: 201 }
       );
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       {
         success: false,
-        message: 'Error assigning staff to shift',
-        error: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+        message: "Error assigning staff to shift",
+        error:
+          process.env.NODE_ENV === "development" ? errorMessage : undefined,
       },
       { status: 500 }
     );
@@ -307,54 +324,54 @@ export async function DELETE(request: NextRequest) {
 
     if (!shift_date || !shift) {
       return NextResponse.json(
-        { success: false, message: 'shift_date and shift are required' },
+        { success: false, message: "shift_date and shift are required" },
         { status: 400 }
       );
     }
 
-    // Normalize shift type
-    const normalizedShift = shift.charAt(0).toUpperCase() + shift.slice(1).toLowerCase();
+    const normalizedShift =
+      shift.charAt(0).toUpperCase() + shift.slice(1).toLowerCase();
 
-
-
-    // Delete all schedule entries for this date and shift
-    const { data, error, count } = await supabase
-      .from('schedule')
-      .delete()
-      .eq('shift_date', shift_date)
-      .eq('shift', normalizedShift)
-      .select('*');
+    const { error, count } = await supabase
+      .from("schedule")
+      .delete({ count: "exact" })
+      .eq("shift_date", shift_date)
+      .eq("shift", normalizedShift);
 
     if (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete shift';
       return NextResponse.json(
         {
           success: false,
-          message: 'Error deleting shift block',
-          error: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+          message: "Error deleting shift block",
+          error:
+            process.env.NODE_ENV === "development" ? error.message : undefined,
         },
         { status: 500 }
       );
     }
 
-    if (count === 0) {
+    if (!count || count === 0) {
       return NextResponse.json(
-        { success: false, message: 'No shift found for this date and type.' },
+        { success: false, message: "No shift found for this date and type." },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Shift deleted successfully',
+      message: "Shift deleted successfully",
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       {
         success: false,
-        message: 'Error deleting shift block',
-        error: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+        message: "Error deleting shift block",
+        error:
+          process.env.NODE_ENV === "development"
+            ? error instanceof Error
+              ? error.message
+              : error
+            : undefined,
       },
       { status: 500 }
     );
