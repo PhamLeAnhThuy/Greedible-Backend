@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       .insert({
         total_amount: totalAmount,
         payment_method: normalizedPaymentMethod,
-        status: 'Pending',
+        status: 'Confirmed',
         customer_id: customerId,
         delivery_address,
         delivery_distance,
@@ -95,21 +95,6 @@ export async function POST(request: Request) {
 
       if (detailError) throw detailError;
     }
-
-    // Auto-complete after 15 seconds
-    setTimeout(async () => {
-      try {
-        await supabase
-          .from('sale')
-          .update({ status: 'Completed', completion_time: new Date().toISOString() })
-          .eq('sale_id', saleId)
-          .eq('status', 'Pending');
-
-        console.log(`Order ${saleId} auto-completed`);
-      } catch (err) {
-        console.error('Auto-complete error:', err);
-      }
-    }, 15000);
 
     return NextResponse.json({
       success: true,
