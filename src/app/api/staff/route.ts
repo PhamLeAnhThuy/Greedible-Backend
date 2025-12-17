@@ -88,3 +88,60 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, staff_name, staff_email, password, role, phone, pay_rates } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: "Missing staff_id" },
+        { status: 400 }
+      );
+    }
+
+    const updateData: any = {};
+    if (staff_name !== undefined) updateData.staff_name = staff_name;
+    if (staff_email !== undefined) updateData.staff_email = staff_email;
+    if (role !== undefined) updateData.role = role;
+    if (phone !== undefined) updateData.phone = phone;
+    if (pay_rates !== undefined) updateData.pay_rates = pay_rates;
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { success: false, message: "No fields provided to update" },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await supabase
+      .from("staff")
+      .update(updateData)
+      .eq("staff_id", Number(id))
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 400 }
+      );
+    }
+
+    // Never return password
+    if (data && (data as any).password) delete (data as any).password;
+
+    return NextResponse.json({ success: true, data }, { status: 200 });
+  } catch (err) {
+    return NextResponse.json(
+      { success: false, message: "Failed to update staff" },
+      { status: 500 }
+    );
+  }
+}
