@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     // Update recipe status to 'unavailable'
     const { data, error } = await supabase
       .from('recipe')
-      .update({ status: 'unavailable' })
+      .update({ status: 'available' })
       .eq('recipe_id', recipe_id)
       .select()
       .single();
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Recipe status updated to unavailable',
+      message: 'Recipe status updated to available',
       data,
     });
   } catch (error) {
